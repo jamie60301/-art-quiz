@@ -679,13 +679,27 @@ window.closeAdminModal = function() {
   document.getElementById('overlay-admin').classList.remove('open');
 };
 window.doAdminLogin = function() {
-  if (document.getElementById('adm-pw').value.trim() === PW_ADMIN) {
+  if (normalizeNum(document.getElementById('adm-pw').value) === PW_ADMIN) {
     closeAdminModal();
     loadReport();
     show('screen-report');
   } else { err('adm-err'); }
 };
-document.getElementById('adm-pw').onkeydown = e => e.key==='Enter' && doAdminLogin();
+document.getElementById('adm-pw').addEventListener('input', function() {
+  const pos = this.selectionStart;
+  const orig = this.value;
+  const norm = orig
+    .replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
+    .replace(/[^0-9]/g, '');
+  if (orig !== norm) {
+    this.value = norm;
+    const bc = orig.slice(0, pos)
+      .replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
+      .replace(/[^0-9]/g, '');
+    this.setSelectionRange(bc.length, bc.length);
+  }
+});
+document.getElementById('adm-pw').addEventListener('keydown', e => e.key === 'Enter' && doAdminLogin());
 document.getElementById('overlay-admin').addEventListener('click', e => {
   if (e.target === e.currentTarget) closeAdminModal();
 });
