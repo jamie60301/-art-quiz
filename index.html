@@ -769,7 +769,8 @@ async function doSubmit() {
   let score = 0;
   QS.forEach((q,i) => { if (grade(q,S.answers[i])) score++; });
 
-  const rec = { name: S.name, score, total:27, answers: S.answers.map(a=>[...a]), submittedAt: serverTimestamp ? serverTimestamp() : null };
+  // Firestore 不支援巢狀陣列，將每題答案序列化為逗號字串（如 "0,2"）
+  const rec = { name: S.name, score, total:27, answers: S.answers.map(a=>a.join(',')), submittedAt: serverTimestamp ? serverTimestamp() : null };
   if (db) {
     try {
       await addDoc(collection(db,'quizResults'), rec);
@@ -782,7 +783,8 @@ async function doSubmit() {
     alert('⚠️ 成績未儲存（' + reason + '）\n\n請截圖此訊息回報。');
   }
 
-  S.submitted = { ...rec, submittedAt: new Date() };
+  // 本地 submitted 用原始陣列格式（供 buildResult 直接使用）
+  S.submitted = { ...rec, answers: S.answers.map(a=>[...a]), submittedAt: new Date() };
   await loadSubs();
   buildResult();
   show('screen-result');
@@ -887,7 +889,14 @@ async function loadSubs() {
   try {
     const snap = await getDocs(query(collection(db,'quizResults'), orderBy('submittedAt','asc')));
     S.subs = [];
-    snap.forEach(d => S.subs.push({ id:d.id, ...d.data() }));
+    snap.forEach(d => {
+      const raw = d.data();
+      // 相容舊格式（陣列）與新格式（逗號字串）
+      const answers = (raw.answers||[]).map(a =>
+        typeof a === 'string' ? (a==='' ? [] : a.split(',').map(Number)) : (Array.isArray(a) ? a : [])
+      );
+      S.subs.push({ id:d.id, ...raw, answers });
+    });
   } catch(e) {
     console.error('loadSubs error:', e);
     S.subs = [];
