@@ -518,11 +518,11 @@ const QS = [
     exp:'根據核銷須知第14、16頁，平面輸出須附印刷尺寸及個別數量；零件耗材須以鉛筆標記用途；報帳照片必須為實品拍攝。不同場景的費用不得合併開立在同一張發票中。' },
   { id:13, type:'single',
     q:'美術組在雲端上傳報帳照片時，關於檔名中「金額」的標記規範，下列何者正確？',
-    opts:['1,940','22,250','5897','照片檔名不需要標註金額，只需寫購買的品項 and 購買人名字即可'],
+    opts:['1,940','22,250','5897','照片檔名不需要標註金額，只需寫購買的品項和購買人名字即可'],
     ans:[2], page:'p.18, p.19',
     exp:'根據核銷須知第18、19頁，雲端上傳報帳照片時，檔名中的金額不可加千分位逗號。1,940 和 22,250 因含逗號不符規定；5897 才是正確格式（無逗號直接寫數字）。' },
   { id:14, type:'multi',
-    q:'當單據遺失、不合格 or 發生無單據支出時，以下哪些補單據的做法符合規定？（複選）',
+    q:'當單據遺失、不合格或發生無單據支出時，以下哪些補單據的做法符合規定？（複選）',
     opts:['若沒有任何單據或截圖附件，只要口頭向會計登記說明，即可直接通融核銷','外幣付款核銷時，需附上支付當日或扣款當日台灣銀行歷史匯率的「即期賣出」匯率證明','應補上與該筆支出等值、且類別為「非餐飲、非交通」的合格發票或收據','需提供原始交易畫面、對話紀錄、或寫明姓名與聯絡電話之領據（載明品項與金額）作為證明'],
     ans:[1,2,3], page:'p.12, p.13',
     exp:'根據核銷須知第12、13頁，外幣核銷須附台灣銀行即期賣出匯率；無單據時需補等值的非餐飲非交通合格單據，並提供交易紀錄、截圖或領據。口頭說明無任何附件者，不得核銷。' },
@@ -628,10 +628,19 @@ function normalizeNum(s) {
   // 全形數字（０-９）→ 半形（0-9），相容中文輸入法全形模式
   return s.replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0)).trim();
 }
-window.doPwSubmit = function() {
+window.doPwSubmit = async function() {
   const v = normalizeNum(document.getElementById('pw-input').value);
-  if (v === PW_TAKER || v === PW_ADMIN) { clearErr('pw-err'); show('screen-cover'); }
-  else err('pw-err');
+  if (v === PW_ADMIN) {
+    clearErr('pw-err');
+    await loadSubs();
+    buildResult();
+    show('screen-result');
+  } else if (v === PW_TAKER) {
+    clearErr('pw-err');
+    show('screen-cover');
+  } else {
+    err('pw-err');
+  }
 };
 /* 即時把全形數字轉半形、濾掉非數字，讓中文輸入法全形模式也能正確輸入 */
 document.getElementById('pw-input').addEventListener('input', function() {
@@ -787,12 +796,6 @@ function buildResult() {
     document.getElementById('r-hero').innerHTML =
       `<div class="hero-name" style="font-size:1rem;color:var(--muted);padding:20px 0;">管理員檢視模式</div>`;
   }
-
-  // Top 5
-  buildTop5('r-top5', S.subs);
-
-  // Ranks
-  buildRanks('r-ranks', d ? d.name : null);
 
   // Reviews (only when user has a personal submission)
   if (d) {
