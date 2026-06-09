@@ -637,7 +637,23 @@ window.doPwSubmit = function() {
   if (v === PW_TAKER || v === PW_ADMIN) { clearErr('pw-err'); show('screen-cover'); }
   else err('pw-err');
 };
-document.getElementById('pw-input').onkeydown = e => e.key==='Enter' && doPwSubmit();
+/* 即時把全形數字轉半形、濾掉非數字，讓中文輸入法全形模式也能正確輸入 */
+document.getElementById('pw-input').addEventListener('input', function() {
+  const pos = this.selectionStart;
+  const orig = this.value;
+  const norm = orig
+    .replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
+    .replace(/[^0-9]/g, '');
+  if (orig !== norm) {
+    this.value = norm;
+    /* 保持游標位置 */
+    const beforeCursor = orig.slice(0, pos)
+      .replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
+      .replace(/[^0-9]/g, '');
+    this.setSelectionRange(beforeCursor.length, beforeCursor.length);
+  }
+});
+document.getElementById('pw-input').addEventListener('keydown', e => e.key === 'Enter' && doPwSubmit());
 
 /* ══ COVER ══ */
 window.doStartQuiz = function() {
