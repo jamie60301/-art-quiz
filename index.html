@@ -869,17 +869,26 @@ window.loadReport = async function() {
 };
 
 async function loadSubs() {
-  if (!db) { S.subs = []; return; }
+  if (!db) { S.subs = []; S.subsErr = 'Firebase 未連線'; return; }
+  S.subsErr = null;
   try {
     const snap = await getDocs(query(collection(db,'quizResults'), orderBy('submittedAt','asc')));
     S.subs = [];
     snap.forEach(d => S.subs.push({ id:d.id, ...d.data() }));
-  } catch(e) { console.warn(e); S.subs = []; }
+  } catch(e) {
+    console.error('loadSubs error:', e);
+    S.subs = [];
+    S.subsErr = e.message || String(e);
+  }
 }
 
 function buildReport() {
   const subs = S.subs;
-  if (!subs.length) { document.getElementById('rpt-body').innerHTML='<div class="loading">尚無作答紀錄</div>'; return; }
+  if (!subs.length) {
+    const errMsg = S.subsErr ? `<div style="color:#ef4444;font-size:.85rem;margin-top:8px;">⚠️ 錯誤：${S.subsErr}</div>` : '';
+    document.getElementById('rpt-body').innerHTML=`<div class="loading">尚無作答紀錄${errMsg}</div>`;
+    return;
+  }
 
   const unique = [...new Set(subs.map(s=>s.name))];
   const avg    = (subs.reduce((a,b)=>a+b.score,0)/subs.length).toFixed(1);
