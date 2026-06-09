@@ -5,555 +5,917 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>《便利商店》美術組 核銷須知測驗</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: 'Noto Sans TC', 'PingFang TC', sans-serif;
-    background: #f5f5f0;
-    color: #222;
-    min-height: 100vh;
-  }
-  .screen { display: none; }
-  .screen.active { display: block; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:        #f0f2f5;
+  --card:      #ffffff;
+  --primary:   #1e293b;
+  --accent:    #3b82f6;
+  --success:   #16a34a;
+  --error:     #dc2626;
+  --border:    #e2e8f0;
+  --muted:     #64748b;
+  --shadow:    0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
+  --shadow-lg: 0 10px 25px rgba(0,0,0,.12);
+}
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Noto Sans TC", sans-serif;
+  background: var(--bg); color: var(--primary); min-height: 100vh; line-height: 1.6;
+}
+.screen { display: none; }
+.screen.active { display: block; }
 
-  /* ── LOGIN ── */
-  #login-screen {
-    display: flex; flex-direction: column; align-items: center;
-    justify-content: center; min-height: 100vh; padding: 24px;
-  }
-  .login-box {
-    background: #fff; border-radius: 16px; padding: 40px 36px;
-    max-width: 420px; width: 100%; box-shadow: 0 4px 24px rgba(0,0,0,.08);
-    text-align: center;
-  }
-  .login-box h1 { font-size: 1.4rem; font-weight: 700; margin-bottom: 6px; }
-  .login-box p { color: #666; font-size: .9rem; margin-bottom: 28px; }
-  .login-box input {
-    width: 100%; padding: 12px 16px; border: 1.5px solid #ddd;
-    border-radius: 8px; font-size: 1rem; margin-bottom: 12px; outline: none;
-  }
-  .login-box input:focus { border-color: #4a90e2; }
-  .login-box .name-row { display: flex; gap: 8px; }
-  .login-box .name-row input { flex: 1; }
-  .btn-primary {
-    width: 100%; padding: 13px; background: #2c2c2c; color: #fff;
-    border: none; border-radius: 8px; font-size: 1rem; cursor: pointer;
-    font-weight: 600; transition: background .2s;
-  }
-  .btn-primary:hover { background: #444; }
-  .error-msg { color: #e55; font-size: .85rem; margin-top: 8px; }
+/* ── Shared ── */
+.card { background: var(--card); border-radius: 16px; padding: 24px; box-shadow: var(--shadow); }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 12px 28px; border: none; border-radius: 10px; font-size: 1rem;
+  font-weight: 600; cursor: pointer; transition: all .15s; text-decoration: none;
+  font-family: inherit;
+}
+.btn-primary   { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: #334155; }
+.btn-primary:disabled { background: #94a3b8; cursor: not-allowed; }
+.btn-secondary { background: var(--bg); color: var(--primary); border: 1.5px solid var(--border); }
+.btn-secondary:hover { border-color: #94a3b8; }
+.btn-full { width: 100%; }
+input[type="text"], input[type="password"] {
+  width: 100%; padding: 12px 16px; border: 1.5px solid var(--border);
+  border-radius: 10px; font-size: 1rem; outline: none; background: #fff;
+  transition: border-color .15s; font-family: inherit;
+}
+input:focus { border-color: var(--accent); }
+.err { color: var(--error); font-size: .82rem; margin-top: 6px; display: none; }
 
-  /* ── QUIZ ── */
-  #quiz-screen { max-width: 760px; margin: 0 auto; padding: 24px 16px 80px; }
-  .quiz-header {
-    background: #fff; border-radius: 12px; padding: 20px 24px;
-    margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,.06);
-  }
-  .quiz-header h2 { font-size: 1.2rem; font-weight: 700; }
-  .quiz-header p { font-size: .85rem; color: #888; margin-top: 4px; }
-  .progress-bar { height: 4px; background: #e8e8e8; border-radius: 2px; margin-top: 12px; }
-  .progress-fill { height: 100%; background: #2c2c2c; border-radius: 2px; transition: width .3s; }
+/* ── PASSWORD ── */
+#screen-password {
+  min-height: 100vh; display: flex; align-items: center;
+  justify-content: center; padding: 24px;
+}
+#screen-password .card {
+  max-width: 400px; width: 100%; text-align: center;
+}
+.pw-icon { font-size: 2.8rem; margin-bottom: 14px; }
+.pw-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 4px; }
+.pw-sub { color: var(--muted); font-size: .875rem; margin-bottom: 24px; }
+.pw-fields { display: flex; flex-direction: column; gap: 10px; }
 
-  .section-label {
-    font-size: .75rem; font-weight: 700; letter-spacing: .08em;
-    text-transform: uppercase; color: #888; margin: 28px 0 12px;
-  }
-  .question-card {
-    background: #fff; border-radius: 12px; padding: 20px 22px;
-    margin-bottom: 14px; box-shadow: 0 2px 8px rgba(0,0,0,.06);
-  }
-  .question-card .q-num {
-    font-size: .75rem; font-weight: 700; color: #aaa;
-    text-transform: uppercase; margin-bottom: 6px;
-  }
-  .question-card .q-text { font-size: .95rem; line-height: 1.55; margin-bottom: 16px; }
-  .question-card .tag {
-    display: inline-block; font-size: .7rem; font-weight: 700;
-    padding: 2px 8px; border-radius: 4px; margin-bottom: 8px;
-  }
-  .tag-single { background: #e8f0fe; color: #1a56db; }
-  .tag-multi  { background: #fef3c7; color: #92400e; }
-  .tag-bool   { background: #d1fae5; color: #065f46; }
+/* ── COVER ── */
+#screen-cover {
+  min-height: 100vh; display: flex; align-items: center;
+  justify-content: center; padding: 24px; position: relative;
+}
+.sun-btn {
+  position: fixed; top: 14px; right: 14px; font-size: 1.4rem;
+  background: none; border: none; cursor: pointer; padding: 8px;
+  border-radius: 50%; transition: transform .3s; z-index: 50; line-height: 1;
+}
+.sun-btn:hover { transform: rotate(60deg) scale(1.1); }
+.cover-card { max-width: 480px; width: 100%; }
+.cover-tag {
+  display: inline-block; background: #dbeafe; color: #1d4ed8;
+  font-size: .7rem; font-weight: 700; padding: 3px 12px; border-radius: 20px;
+  letter-spacing: .06em; margin-bottom: 14px; text-transform: uppercase;
+}
+.cover-title { font-size: 1.5rem; font-weight: 800; line-height: 1.3; margin-bottom: 8px; }
+.cover-desc  { color: var(--muted); font-size: .875rem; margin-bottom: 20px; }
+.cover-stats {
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 20px;
+}
+.stat { text-align: center; background: var(--bg); border-radius: 10px; padding: 12px 8px; }
+.stat-n { font-size: 1.4rem; font-weight: 800; color: var(--accent); }
+.stat-l { font-size: .72rem; color: var(--muted); }
+.cover-note {
+  background: #f8fafc; border-radius: 10px; padding: 12px 14px;
+  font-size: .82rem; color: var(--muted); line-height: 1.7; margin-bottom: 20px;
+}
+.cover-fields { display: flex; flex-direction: column; gap: 10px; }
 
-  .options { display: flex; flex-direction: column; gap: 8px; }
-  .option-label {
-    display: flex; align-items: flex-start; gap: 10px;
-    padding: 10px 14px; border: 1.5px solid #e5e5e5;
-    border-radius: 8px; cursor: pointer; transition: border-color .15s, background .15s;
-    font-size: .9rem; line-height: 1.45;
-  }
-  .option-label:hover { border-color: #bbb; background: #fafafa; }
-  .option-label input { margin-top: 2px; flex-shrink: 0; }
-  .option-label.selected { border-color: #2c2c2c; background: #f0f0f0; }
+/* ── QUIZ ── */
+#screen-quiz { min-height: 100vh; padding-bottom: 90px; }
+.quiz-top {
+  position: sticky; top: 0; z-index: 10;
+  background: rgba(240,242,245,.96); backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border); padding: 10px 20px;
+}
+.quiz-top-row {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;
+}
+.quiz-label { font-size: .8rem; color: var(--muted); font-weight: 600; }
+.quiz-count { font-size: .875rem; font-weight: 700; }
+.prog-bar { height: 4px; background: var(--border); border-radius: 2px; }
+.prog-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width .3s ease; }
+.quiz-body { max-width: 640px; margin: 0 auto; padding: 24px 20px; }
+.q-badge {
+  display: inline-block; padding: 3px 10px; border-radius: 6px;
+  font-size: .72rem; font-weight: 700; letter-spacing: .04em; margin-bottom: 10px;
+}
+.q-single { background: #dbeafe; color: #1d4ed8; }
+.q-multi  { background: #fef3c7; color: #92400e; }
+.q-tf     { background: #d1fae5; color: #065f46; }
+.q-text   { font-size: 1.05rem; font-weight: 600; line-height: 1.6; margin-bottom: 16px; }
+.q-hint   { font-size: .8rem; color: var(--muted); margin-bottom: 12px; }
+.opts     { display: flex; flex-direction: column; gap: 10px; }
+.opt {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 13px 16px; border: 2px solid var(--border); border-radius: 12px;
+  cursor: pointer; user-select: none; transition: border-color .12s, background .12s;
+}
+.opt:hover { border-color: #93c5fd; background: #f0f7ff; }
+.opt.sel   { border-color: var(--accent); background: #eff6ff; }
+.opt-ctrl {
+  width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--border);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px;
+  transition: all .12s;
+}
+.opt.sel .opt-ctrl { border-color: var(--accent); background: var(--accent); }
+.opt-dot { width: 8px; height: 8px; background: #fff; border-radius: 50%; display: none; }
+.opt.sel .opt-dot { display: block; }
+.opt-box {
+  width: 20px; height: 20px; border-radius: 5px; border: 2px solid var(--border);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  margin-top: 1px; font-size: .7rem; color: #fff; transition: all .12s;
+}
+.opt.sel .opt-box { border-color: var(--accent); background: var(--accent); }
+.opt-text { font-size: .95rem; line-height: 1.5; flex: 1; }
+.quiz-foot {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: rgba(240,242,245,.96); backdrop-filter: blur(8px);
+  border-top: 1px solid var(--border); padding: 14px 20px; z-index: 10;
+}
+.quiz-foot-inner { max-width: 640px; margin: 0 auto; }
+#btn-next { width: 100%; }
 
-  .submit-bar {
-    position: fixed; bottom: 0; left: 0; right: 0;
-    background: #fff; border-top: 1px solid #eee;
-    padding: 14px 20px; display: flex; justify-content: center;
-  }
-  .btn-submit {
-    background: #2c2c2c; color: #fff; border: none; border-radius: 10px;
-    padding: 14px 48px; font-size: 1rem; font-weight: 700; cursor: pointer;
-    max-width: 400px; width: 100%; transition: background .2s;
-  }
-  .btn-submit:hover { background: #444; }
-  .btn-submit:disabled { background: #aaa; cursor: not-allowed; }
+/* ── RESULT & REPORT shared ── */
+.page-wrap { max-width: 760px; margin: 0 auto; padding: 28px 16px 64px; }
+.section-h {
+  font-size: .95rem; font-weight: 700; display: flex; align-items: center;
+  gap: 8px; margin-bottom: 14px;
+}
+.loading { text-align: center; padding: 48px; color: var(--muted); }
+.spin {
+  width: 32px; height: 32px; border: 3px solid var(--border);
+  border-top-color: var(--accent); border-radius: 50%;
+  animation: spin .7s linear infinite; margin: 0 auto 10px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 
-  /* ── RESULT ── */
-  #result-screen {
-    max-width: 560px; margin: 0 auto; padding: 40px 16px;
-    text-align: center;
-  }
-  .result-box {
-    background: #fff; border-radius: 16px; padding: 40px 32px;
-    box-shadow: 0 4px 24px rgba(0,0,0,.08);
-  }
-  .score-circle {
-    width: 120px; height: 120px; border-radius: 50%;
-    background: #2c2c2c; color: #fff;
-    display: flex; flex-direction: column; align-items: center;
-    justify-content: center; margin: 0 auto 24px;
-  }
-  .score-circle .score-num { font-size: 2.4rem; font-weight: 800; line-height: 1; }
-  .score-circle .score-den { font-size: .85rem; color: #aaa; }
-  .result-box h2 { font-size: 1.4rem; font-weight: 700; margin-bottom: 8px; }
-  .result-box p { color: #666; margin-bottom: 24px; }
-  .btn-retry {
-    background: #f0f0f0; color: #333; border: none; border-radius: 8px;
-    padding: 12px 32px; font-size: .95rem; font-weight: 600; cursor: pointer;
-  }
+/* ── RESULT ── */
+.hero {
+  border-radius: 16px; padding: 36px 24px; text-align: center; color: #fff; margin-bottom: 28px;
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
+}
+.hero-name   { font-size: .875rem; opacity: .75; margin-bottom: 6px; }
+.hero-score  { font-size: 4.5rem; font-weight: 900; line-height: 1; }
+.hero-total  { font-size: 1.1rem; opacity: .65; margin-bottom: 4px; }
+.hero-pct    { font-size: 1.6rem; font-weight: 700; margin: 6px 0; }
+.hero-badge  {
+  display: inline-block; padding: 4px 18px; border-radius: 20px; font-weight: 700;
+  font-size: .875rem; margin-top: 6px;
+}
+.badge-pass { background: rgba(34,197,94,.2); color: #4ade80; border: 1px solid rgba(74,222,128,.3); }
+.badge-fail { background: rgba(239,68,68,.2); color: #f87171; border: 1px solid rgba(248,113,113,.3); }
 
-  /* ── ADMIN ── */
-  #admin-screen { max-width: 960px; margin: 0 auto; padding: 28px 16px; }
-  #admin-screen h2 { font-size: 1.3rem; font-weight: 700; margin-bottom: 20px; }
-  .admin-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
-  .admin-table th, .admin-table td { padding: 11px 14px; text-align: left; font-size: .88rem; }
-  .admin-table th { background: #f5f5f5; font-weight: 700; border-bottom: 1px solid #eee; }
-  .admin-table tr:not(:last-child) td { border-bottom: 1px solid #f0f0f0; }
-  .admin-table tr:hover td { background: #fafafa; }
-  .score-badge {
-    display: inline-block; padding: 2px 10px; border-radius: 20px;
-    font-weight: 700; font-size: .82rem;
-  }
-  .score-pass { background: #d1fae5; color: #065f46; }
-  .score-fail { background: #fee2e2; color: #991b1b; }
-  .btn-admin-back {
-    margin-top: 20px; background: #f0f0f0; color: #333; border: none;
-    border-radius: 8px; padding: 10px 24px; cursor: pointer; font-size: .9rem;
-  }
-  .admin-stats {
-    display: flex; gap: 14px; margin-bottom: 20px; flex-wrap: wrap;
-  }
-  .stat-card {
-    background: #fff; border-radius: 10px; padding: 14px 20px;
-    box-shadow: 0 2px 8px rgba(0,0,0,.06); flex: 1; min-width: 120px;
-  }
-  .stat-card .stat-val { font-size: 1.6rem; font-weight: 800; }
-  .stat-card .stat-label { font-size: .78rem; color: #888; }
-  .loading { text-align: center; padding: 60px; color: #888; }
-  .btn-refresh {
-    background: #2c2c2c; color: #fff; border: none; border-radius: 8px;
-    padding: 9px 20px; cursor: pointer; font-size: .88rem; font-weight: 600; margin-bottom: 16px;
-  }
-  .detail-link { color: #2c2c2c; cursor: pointer; text-decoration: underline; font-size: .82rem; }
+.rank-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 28px; }
+.rank-row {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--card); border-radius: 10px; padding: 10px 14px;
+  box-shadow: var(--shadow);
+}
+.rank-row.me { border: 2px solid var(--accent); }
+.rank-num {
+  width: 28px; height: 28px; border-radius: 50%; background: var(--bg);
+  display: flex; align-items: center; justify-content: center; font-size: .78rem;
+  font-weight: 700; flex-shrink: 0;
+}
+.rn-gold   { background: #fde68a; color: #78350f; }
+.rn-silver { background: #e2e8f0; color: #374151; }
+.rn-bronze { background: #fed7aa; color: #7c2d12; }
+.rank-name { flex: 1; font-weight: 600; font-size: .9rem; }
+.rank-score { font-size: .85rem; font-weight: 700; background: var(--bg); padding: 2px 10px; border-radius: 6px; }
 
-  /* ── DETAIL ── */
-  #detail-screen { max-width: 760px; margin: 0 auto; padding: 28px 16px 60px; }
-  #detail-screen h2 { font-size: 1.2rem; font-weight: 700; margin-bottom: 20px; }
-  .detail-q { background: #fff; border-radius: 10px; padding: 16px 20px; margin-bottom: 12px; box-shadow: 0 1px 6px rgba(0,0,0,.05); }
-  .detail-q .dq-text { font-size: .9rem; margin-bottom: 10px; }
-  .detail-q .dq-opts { font-size: .85rem; display: flex; flex-wrap: wrap; gap: 6px; }
-  .dq-chip { padding: 3px 10px; border-radius: 5px; }
-  .chip-correct { background: #d1fae5; color: #065f46; }
-  .chip-wrong   { background: #fee2e2; color: #991b1b; }
-  .chip-neutral { background: #f0f0f0; color: #555; }
-  .dq-label { font-size: .78rem; font-weight: 700; color: #aaa; margin-bottom: 4px; }
-  .btn-back {
-    background: #f0f0f0; color: #333; border: none; border-radius: 8px;
-    padding: 10px 24px; cursor: pointer; font-size: .9rem; margin-bottom: 20px;
-  }
+.top5-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 28px; }
+.top5-row {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--card); border-radius: 10px; padding: 12px 14px; box-shadow: var(--shadow);
+}
+.t5-num {
+  width: 32px; height: 32px; border-radius: 8px; background: #fee2e2; color: var(--error);
+  font-weight: 800; font-size: .82rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.t5-info { flex: 1; min-width: 0; }
+.t5-id   { font-weight: 700; font-size: .88rem; margin-bottom: 1px; }
+.t5-q    { font-size: .8rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.t5-rate { font-weight: 700; color: var(--error); text-align: right; font-size: .88rem; flex-shrink: 0; }
 
-  @media (max-width: 500px) {
-    .login-box { padding: 28px 20px; }
-    .admin-table { font-size: .8rem; }
-    .admin-table th, .admin-table td { padding: 9px 10px; }
-  }
+.reviews { display: flex; flex-direction: column; gap: 12px; margin-bottom: 28px; }
+.review {
+  background: var(--card); border-radius: 12px; padding: 16px 18px;
+  box-shadow: var(--shadow); border-left: 4px solid var(--border);
+}
+.review.ok  { border-left-color: var(--success); }
+.review.bad { border-left-color: var(--error); }
+.rv-head    { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 8px; }
+.rv-icon    { font-size: 1.15rem; flex-shrink: 0; margin-top: 1px; }
+.rv-meta    { font-size: .72rem; color: var(--muted); font-weight: 700; margin-bottom: 3px; }
+.rv-q       { font-size: .9rem; font-weight: 600; line-height: 1.5; }
+.rv-ans     { font-size: .83rem; margin-top: 6px; }
+.rv-user    { color: var(--muted); margin-bottom: 2px; }
+.rv-correct { color: var(--success); font-weight: 600; }
+.rv-explain {
+  font-size: .8rem; color: var(--muted); margin-top: 8px; padding-top: 8px;
+  border-top: 1px solid var(--border); line-height: 1.65;
+}
+.rv-page { color: var(--accent); font-size: .77rem; margin-top: 4px; }
+
+/* ── REPORT ── */
+.rpt-section { margin-bottom: 32px; }
+.rpt-title {
+  font-size: 1rem; font-weight: 700; padding-bottom: 8px;
+  border-bottom: 2px solid var(--border); margin-bottom: 14px;
+}
+.summary-grid {
+  display: grid; grid-template-columns: repeat(auto-fill,minmax(130px,1fr)); gap: 10px; margin-bottom: 28px;
+}
+.summary-card { background: var(--card); border-radius: 12px; padding: 16px; text-align: center; box-shadow: var(--shadow); }
+.sc-icon  { font-size: 1.4rem; }
+.sc-val   { font-size: 1.8rem; font-weight: 800; margin: 4px 0; }
+.sc-label { font-size: .72rem; color: var(--muted); }
+
+.rank-table { width: 100%; border-collapse: collapse; }
+.rank-table th { text-align: left; padding: 9px 12px; background: var(--bg); font-size: .75rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+.rank-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: .875rem; }
+.rank-table tr:last-child td { border-bottom: none; }
+
+.bar-chart-wrap { display: flex; flex-direction: column; gap: 7px; }
+.bar-row  { display: flex; align-items: center; gap: 8px; }
+.bar-label{ width: 32px; font-size: .75rem; color: var(--muted); text-align: right; flex-shrink: 0; }
+.bar-track{ flex: 1; height: 18px; background: var(--bg); border-radius: 4px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 4px; transition: width .5s ease; min-width: 2px; }
+.bf-hi { background: var(--accent); }
+.bf-lo { background: #f87171; }
+.bar-pct  { width: 36px; font-size: .75rem; font-weight: 700; color: var(--muted); flex-shrink: 0; }
+
+.hist-person { background: var(--card); border-radius: 12px; margin-bottom: 10px; box-shadow: var(--shadow); overflow: hidden; }
+.hist-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; background: var(--bg); cursor: pointer; gap: 12px;
+}
+.hist-name  { font-weight: 700; font-size: .9rem; }
+.hist-meta  { font-size: .78rem; color: var(--muted); }
+.hist-count { font-size: .78rem; color: var(--muted); flex-shrink: 0; }
+.hist-rows  { display: none; }
+.hist-rows.open { display: block; }
+.hist-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 9px 16px; border-top: 1px solid var(--border); font-size: .85rem; gap: 12px;
+}
+.hist-time { color: var(--muted); font-size: .78rem; }
+.hist-sc   { font-weight: 700; }
+
+/* ── MODAL ── */
+.overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.45);
+  display: flex; align-items: center; justify-content: center; z-index: 100; padding: 24px;
+  opacity: 0; pointer-events: none; transition: opacity .2s;
+}
+.overlay.open { opacity: 1; pointer-events: all; }
+.modal {
+  background: var(--card); border-radius: 16px; padding: 28px; max-width: 360px; width: 100%;
+  box-shadow: var(--shadow-lg); transform: scale(.95); transition: transform .2s;
+}
+.overlay.open .modal { transform: scale(1); }
+.modal-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 4px; }
+.modal-sub   { font-size: .85rem; color: var(--muted); margin-bottom: 20px; }
+.modal-form  { display: flex; flex-direction: column; gap: 10px; }
+.modal-btns  { display: flex; gap: 10px; }
+.modal-btns .btn { flex: 1; }
+
+/* ── PAGE ACTIONS ── */
+.page-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 28px; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 480px) {
+  .quiz-body { padding: 16px 14px; }
+  .page-wrap { padding: 16px 12px 64px; }
+  .hero-score { font-size: 3.5rem; }
+  .cover-title { font-size: 1.3rem; }
+}
 </style>
 </head>
 <body>
 
-<!-- LOGIN -->
-<div id="login-screen" class="screen active">
-  <div class="login-box">
-    <h1>《便利商店》美術組</h1>
-    <p>核銷須知 線上測驗</p>
-    <input type="text" id="login-name" placeholder="您的姓名" autocomplete="off">
-    <input type="password" id="login-password" placeholder="測驗密碼" autocomplete="off">
-    <button class="btn-primary" onclick="doLogin()">開始測驗</button>
-    <div class="error-msg" id="login-error"></div>
-  </div>
-</div>
-
-<!-- QUIZ -->
-<div id="quiz-screen" class="screen">
-  <div class="quiz-header">
-    <h2>《便利商店》美術組 核銷須知測驗</h2>
-    <p>請認真作答，共 27 題</p>
-    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
-  </div>
-  <div id="questions-container"></div>
-  <div class="submit-bar">
-    <button class="btn-submit" id="submit-btn" onclick="submitQuiz()">交卷</button>
-  </div>
-</div>
-
-<!-- RESULT -->
-<div id="result-screen" class="screen">
-  <div class="result-box">
-    <div class="score-circle">
-      <span class="score-num" id="result-score">--</span>
-      <span class="score-den" id="result-den">/ 27</span>
+<!-- ══ PASSWORD ══ -->
+<div id="screen-password" class="screen active">
+  <div class="card" style="max-width:400px;width:100%;text-align:center;margin:0 auto;">
+    <div class="pw-icon">📋</div>
+    <div class="pw-title">《便利商店》美術組</div>
+    <div class="pw-sub">核銷須知 線上測驗</div>
+    <div class="pw-fields">
+      <input type="password" id="pw-input" placeholder="請輸入測驗密碼" autocomplete="off">
+      <div class="err" id="pw-err">密碼錯誤，請重試</div>
+      <button class="btn btn-primary btn-full" onclick="doPwSubmit()">進入</button>
     </div>
-    <h2 id="result-name">--</h2>
-    <p id="result-msg">感謝您完成測驗！</p>
-    <button class="btn-retry" onclick="showScreen('login-screen'); resetQuiz()">重新測驗</button>
   </div>
 </div>
 
-<!-- ADMIN -->
-<div id="admin-screen" class="screen">
-  <h2>管理員後台 — 測驗結果</h2>
-  <div class="admin-stats" id="admin-stats"></div>
-  <button class="btn-refresh" onclick="loadAdmin()">重新整理</button>
-  <div id="admin-table-container"><div class="loading">載入中…</div></div>
-  <button class="btn-admin-back" onclick="showScreen('login-screen')">登出</button>
+<!-- ══ COVER ══ -->
+<div id="screen-cover" class="screen">
+  <button class="sun-btn" onclick="openAdminModal()" title="管理員入口">☀️</button>
+  <div class="cover-card card">
+    <div class="cover-tag">美術組 核銷須知</div>
+    <h1 class="cover-title">《便利商店》美術組<br>核銷須知測驗</h1>
+    <p class="cover-desc">請仔細閱讀每一題後再作答，完成後可查看詳細解析</p>
+    <div class="cover-stats">
+      <div class="stat"><div class="stat-n">27</div><div class="stat-l">題目總數</div></div>
+      <div class="stat"><div class="stat-n">無</div><div class="stat-l">時間限制</div></div>
+      <div class="stat"><div class="stat-n">80%</div><div class="stat-l">及格標準</div></div>
+    </div>
+    <div class="cover-note">
+      📌 本測驗包含 <strong>8 題單選</strong>、<strong>10 題多選</strong>、<strong>9 題是非</strong><br>
+      📌 每題依序作答，不可跳題<br>
+      📌 可重複作答，每次均記錄成績
+    </div>
+    <div class="cover-fields">
+      <input type="text" id="cover-name" placeholder="請輸入您的姓名" autocomplete="off">
+      <div class="err" id="cover-err">請輸入您的姓名</div>
+      <button class="btn btn-primary btn-full" onclick="doStartQuiz()">開始測驗</button>
+    </div>
+  </div>
 </div>
 
-<!-- DETAIL -->
-<div id="detail-screen" class="screen">
-  <button class="btn-back" onclick="showScreen('admin-screen')">← 返回</button>
-  <h2 id="detail-title">作答詳情</h2>
-  <div id="detail-container"></div>
+<!-- ══ QUIZ ══ -->
+<div id="screen-quiz" class="screen">
+  <div class="quiz-top">
+    <div class="quiz-top-row">
+      <span class="quiz-label">便利商店 美術組</span>
+      <span class="quiz-count" id="quiz-count">1 / 27</span>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+  </div>
+  <div class="quiz-body" id="quiz-body"></div>
+  <div class="quiz-foot">
+    <div class="quiz-foot-inner">
+      <button class="btn btn-primary" id="btn-next" onclick="doNext()" disabled>下一題</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ RESULT ══ -->
+<div id="screen-result" class="screen">
+  <div class="page-wrap">
+    <div class="hero" id="r-hero"></div>
+
+    <div class="section-h">🔥 錯誤率最高的五題</div>
+    <div class="top5-list" id="r-top5"><div class="loading"><div class="spin"></div>計算中…</div></div>
+
+    <div class="section-h">👥 所有參加者成績</div>
+    <div class="rank-list" id="r-ranks"><div class="loading"><div class="spin"></div>載入中…</div></div>
+
+    <div class="section-h">📝 每題作答解析</div>
+    <div class="reviews" id="r-reviews"></div>
+
+    <div class="page-actions">
+      <button class="btn btn-secondary" onclick="doGoReport()">查看完整報告</button>
+      <button class="btn btn-secondary" onclick="doRetake()">重新作答</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ REPORT ══ -->
+<div id="screen-report" class="screen">
+  <div class="page-wrap">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:24px;">
+      <h1 style="font-size:1.25rem;font-weight:800;">📊 完整報告</h1>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-secondary" style="padding:8px 16px;font-size:.82rem;" onclick="loadReport()">重新整理</button>
+        <button class="btn btn-secondary" style="padding:8px 16px;font-size:.82rem;" onclick="doBack()">← 返回</button>
+      </div>
+    </div>
+    <div id="rpt-body"><div class="loading"><div class="spin"></div>載入資料中…</div></div>
+  </div>
+</div>
+
+<!-- ══ MODAL ══ -->
+<div class="overlay" id="overlay-admin">
+  <div class="modal">
+    <div class="modal-title">🔐 管理員入口</div>
+    <div class="modal-sub">請輸入管理員密碼以查看完整報告</div>
+    <div class="modal-form">
+      <input type="password" id="adm-pw" placeholder="管理員密碼" autocomplete="off">
+      <div class="err" id="adm-err">密碼錯誤</div>
+      <div class="modal-btns">
+        <button class="btn btn-secondary" onclick="closeAdminModal()">取消</button>
+        <button class="btn btn-primary" onclick="doAdminLogin()">確認</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, serverTimestamp, query, orderBy }
+/* ══ FIREBASE ══ */
+import { initializeApp }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyA2znsVNLZvoTHT1cx9gUFDyIMR6GXxS70",
-  authDomain: "quiz-5d24c.firebaseapp.com",
-  projectId: "quiz-5d24c",
-  storageBucket: "quiz-5d24c.firebasestorage.app",
+const app = initializeApp({
+  apiKey:            "AIzaSyA2znsVNLZvoTHT1cx9gUFDyIMR6GXxS70",
+  authDomain:        "quiz-5d24c.firebaseapp.com",
+  projectId:         "quiz-5d24c",
+  storageBucket:     "quiz-5d24c.firebasestorage.app",
   messagingSenderId: "452443218872",
-  appId: "1:452443218872:web:d735e6062adefcad6ea54d",
-  measurementId: "G-7XLVGWMET9"
-};
+  appId:             "1:452443218872:web:d735e6062adefcad6ea54d"
+});
+const db = getFirestore(app);
 
-const app = initializeApp(firebaseConfig);
-const db  = getFirestore(app);
+/* ══ CONSTANTS ══ */
+const PW_TAKER = '60049018';
+const PW_ADMIN = '5897';
+const PASS_PCT = 0.80;
 
-/* ── QUIZ DATA ── */
-const QUESTIONS = [
-  // 單選題
-  { id:1,  type:'single', text:'轅年視覺創意股份有限公司的統一編號是多少？',
-    opts:{A:'42865759', B:'54334222', C:'52859974', D:'90483301'} },
-  { id:2,  type:'single', text:'每週什麼時候需要交帳？',
-    opts:{A:'每週一下午兩點', B:'每週三下午兩點', C:'每週五下午五點', D:'每週三下午五點'} },
-  { id:3,  type:'single', text:'關於過夜停車費的報帳上限與規定，下列何者正確？',
-    opts:{A:'無上限，實報實銷', B:'上限為每日 $150', C:'上限為 $250，且需打統編並用鉛筆註明車牌、事由及地點', D:'上限為 $500，且不需註明車牌與場景'} },
-  { id:4,  type:'single', text:'關於高鐵車資的核銷與補貼標準，下列敘述何者正確？',
-    opts:{A:'全額核銷商務車廂車資', B:'全額核銷標準車廂車資，不需提供購票證明', C:'僅補貼「台鐵自強號費用」，手機購票需下載電子購票證明並打公司抬頭統編', D:'不予補貼高鐵車資，僅限搭乘台鐵'} },
-  { id:5,  type:'single', text:'「免用統一發票收據」單張核銷金額上限是多少？若超過該金額應如何處理？',
-    opts:{A:'上限 3,000 元，超過不予核銷', B:'上限 5,000 元，超過請店家分多張收據開立核銷', C:'上限 10,000 元，超過需強制開立三聯式發票', D:'無金額上限限制'} },
-  { id:6,  type:'single', text:'關於電子發票的列印與核銷要求，下列何者正確？',
-    opts:{A:'不需交易明細，直接裁切發票部分黏貼即可', B:'必須以 A4 列印，不需裁切或黏貼，且皆須附上該發票購物清單或交易明細', C:'可以用手機截圖畫面直接傳給會計報帳', D:'必須折成發票大小後，加蓋發票專用章'} },
-  { id:7,  type:'single', text:'關於電話費核銷的報支程序與限制，下列何者正確？',
-    opts:{A:'可以直接核銷月租費與通話費，無須申請', B:'需先向製片申請後採實報實銷（不含月租費），並以個人勞報核銷、附上電話帳單及通話明細', C:'只能核銷月租費，通話費一律自理', D:'不需附通話明細，帳單及通話明細缺一不可'} },
-  { id:8,  type:'single', text:'執行業務所得（9A 代號，如個人租借），單筆給付金額達多少以上且未提供工會證明時，會代扣 10% 所得稅及 2.11% 補充保費？',
-    opts:{A:'$20,000', B:'$20,010', C:'$29,500', D:'$90,501'} },
-
-  // 多選題
-  { id:9,  type:'multi', text:'向美術會計申請廠商款時，需提供哪些文件及資訊（可複選）',
-    opts:{A:'包含品項、數量、金額及廠商之報價單', B:'發票影本即可，不需要提供發票正本', C:'場景與場景編號', D:'存摺封面（收款對象需與發票開立廠商或簽約對象相同）', E:'相關日期（如拍攝／取貨／租借／歸還日期）'} },
-  { id:10, type:'multi', text:'關於每週回帳的分類與申報單位，下列哪些敘述是正確的？（複選）',
-    opts:{A:'生活費請以「個人」為單位交帳', B:'基本組耗材（如大力膠、噴膠、噴漆、束帶、垃圾袋）不需與生活費、製作費分開', C:'製作費請以「小組」為單位交帳，註明每位組員回帳金額', D:'回帳時必須將生活費、製作費及基本組耗材分開，並以日期將發票排序'} },
-  { id:11, type:'multi', text:'在製作費單據上，關於陳設組與現場組的鉛筆註記規範，下列哪些是正確的？（複選）',
-    opts:{A:'陳設組需在空白處以鉛筆註明：購買人／場景編號／品項名稱／數量', B:'若購買的物品數量僅為 1，為了省時，不需註明數量 X1', C:'現場組需在空白處以鉛筆註明：購買人／場次／演員／品項名稱／數量', D:'若為租賃物品，必須額外註明「租期」'} },
-  { id:12, type:'multi', text:'關於設計組與平面組在核銷時的特殊規範，下列哪些是正確的？（複選）',
-    opts:{A:'平面輸出或設計品發包，核銷時需附上印刷尺寸、個別數量', B:'為節省發票張數，不同場景的雜支與支出，應盡可能合併開在同一張發票中', C:'購買零件及耗材需於空白處以鉛筆註明用途', D:'報帳照片必須以實品拍攝為主，僅提供設計圖檔無法進行核銷'} },
-  { id:13, type:'multi', text:'美術組在雲端上傳報帳照片時，關於檔名中「金額」的標記規範，下列哪些敘述是正確的？（以下選項皆為報帳照片的檔名示例，請選出符合規定的）',
-    opts:{A:'1,940', B:'22,250', C:'5897', D:'照片檔名不需要標註金額，只需寫購買的品項及購買人名字即可'} },
-  { id:14, type:'multi', text:'當單據遺失、不合格或發生無單據支出時，以下哪些補單據的做法符合規定？（複選）',
-    opts:{A:'若沒有任何單據或截圖附件，只要口頭向會計登記說明，即可直接通融核銷', B:'外幣付款核銷時，需附上支付當日或扣款當日台灣銀行歷史匯率的「即期賣出」匯率證明', C:'應補上與該筆支出等值、且類別為「非餐飲、非交通」的合格發票或收據', D:'需提供原始交易畫面、對話紀錄、或寫明姓名與聯絡電話之領據（載明品項與金額）作為證明'} },
-  { id:15, type:'multi', text:'關於公有停車格的核銷流程，下列哪些是正確的？（複選）',
-    opts:{A:'公有停車格需連同「停車單」與「繳費收據」一同核銷，僅有繳費收據者不得核銷', B:'若一張超商繳費明細對應多張停車單，為了方便黏貼，應將明細剪開分別黏貼', C:'停車單遺失時，可上當地停管處網頁列印已繳證明，與繳費收據一同繳交', D:'以第三方支付或銀行扣款者，需至停管處網頁輸入抬頭統編列印繳費收據，與原始停車單一同繳交'} },
-  { id:16, type:'multi', text:'關於「免用統一發票收據」之合格條件與使用限制，下列哪些是正確的？（複選）',
-    opts:{A:'收據上需同時加蓋店家的「免用統一發票專用章」及「負責人小章」（大小章缺一不可）', B:'如果因其他科目預算不足，可以彈性拿多出來的餐飲收據去充抵核銷道具費', C:'若店家蓋成「統一發票專用章」，因印章不合規定，此收據將視為無效單據', D:'店家若未填寫買受人抬頭及統編，應留白交由美術會計統一於報帳前處理'} },
-  { id:17, type:'multi', text:'關於三聯式統一發票的核銷規範，下列哪些敘述是正確的？（複選）',
-    opts:{A:'若發票上的大寫金額填寫錯誤，不可直接塗改，必須請店家重新開立新發票', B:'買受人抬頭必須為「轅年視覺創意股份有限公司」，統一編號需為「42865759」', C:'若發票不小心開成二聯式發票，核銷時直接加蓋公司統編章即可視為合格發票', D:'三聯式發票報帳時，必須同時提供「扣抵聯」與「收執聯」兩聯正本，缺一不可'} },
-  { id:18, type:'multi', text:'下列哪些情況會導致工會證明被判定為「不合格」而無法免扣二代健保補充保費？（複選）',
-    opts:{A:'提供工會開立之載有被保險人姓名、且清楚標註所屬繳費月份的繳費收據', B:'工會繳費證明上漏掉「被保險人姓名」', C:'僅提供職業工會會員證（此證件通常只寫加保日，無法核對當下的在保狀況）', D:'工會繳費證明上沒有明確寫出該筆會費所屬的「繳費期間（年月）」'} },
-
-  // 是非題
-  { id:19, type:'bool', text:'若發票因為漏打統編，請店家於發票上補蓋「統一發票專用章」店章，該張發票即可視為合格發票進行核銷。' },
-  { id:20, type:'bool', text:'為了減少開立發票的數量，不同場景所使用的陳設道具，可以開在同一張發票內。' },
-  { id:21, type:'bool', text:'計程車資在核銷時，必須附上乘車收據，除了收據上的固定資訊外，還必須用鉛筆加註搭乘起訖點、搭乘對象與搭乘事由。' },
-  { id:22, type:'bool', text:'勞務報酬單簽名處，為了方便在戶外工作的同仁，可以由領款人以手機或平板「電子簽名」後列印繳交。' },
-  { id:23, type:'bool', text:'ETC 通行費在報帳時，除了提供通行費繳費紀錄之外，還必須印出「過站證明」，且兩者皆必須印有遠通電收電子憑證專用章。' },
-  { id:24, type:'bool', text:'開拍後的餐飲費補貼標準是早餐／宵夜 70 元、午餐／晚餐 90 元，申報時必須依照個人實際工作時間填寫餐費表。' },
-  { id:25, type:'bool', text:'每週核銷的金額若很少（例如不到 100 元），可以累積多週再交給會計，不需每週回帳。' },
-  { id:26, type:'bool', text:'勞務報酬單上的任何金額、個人資料，如果填寫錯誤有塗改，必須由所得人於塗改處簽名，否則該單據即為無效單據。' },
-  { id:27, type:'bool', text:'外幣付款核銷，核銷金額換算依據必須以「台灣銀行歷史匯率」中的「即期買入」匯率為換算標準。' },
+/* ══ QUESTIONS ══ */
+const QS = [
+  { id:1, type:'single',
+    q:'轅年視覺創意股份有限公司的統一編號是多少？',
+    opts:['42865759','54334222','52859974','90483301'],
+    ans:[0], page:'p.1, p.34',
+    exp:'簡報第1頁封面以及第34頁三聯式發票範例中，均清楚標示本公司「轅年視覺創意股份有限公司」之統一編號為 42865759。' },
+  { id:2, type:'single',
+    q:'每週核銷的收帳時間固定在每週的什麼時候？',
+    opts:['每週一 下午六點','每週三 下午兩點','每週五 下午六點','每週三 下午六點'],
+    ans:[1], page:'p.6',
+    exp:'根據簡報第6頁「核銷方式」，每週三下午兩點收帳，交帳時需附便條說明回帳金額。' },
+  { id:3, type:'single',
+    q:'關於過夜停車費的上限與規定，下列何者正確？',
+    opts:['無上限，實報實銷','上限為每日 $150','上限為 $250，並需打統一編號以及空白處以鉛筆標註核銷人、事由及地點','上限為 $500，且不需說明事由與場景'],
+    ans:[2], page:'p.16',
+    exp:'根據簡報第16頁交通費規定，過夜停車費上限為 $250。需打統編，並於空白處以鉛筆標註：核銷人/車號/車名/事由/地點或場景。' },
+  { id:4, type:'single',
+    q:'關於高鐵車資的核銷方式與憑證，下列敘述何者正確？',
+    opts:['全額核銷商務艙或自強號費用','全額核銷商務艙費用，不需提供購票說明','僅核銷「台鐵自強號費用」，需有票根 or 乘車證明；手機或網頁購票需下載電子購票證明並打公司抬頭統編','不核銷高鐵車資，僅補貼台鐵'],
+    ans:[2], page:'p.17, p.28',
+    exp:'根據簡報第17頁與28頁高鐵車資規定，高鐵補貼「台鐵自強號費用」，需有票根 or 乘車證明；手機或網頁購票需下載電子購票證明並打上公司抬頭統編方可核銷。' },
+  { id:5, type:'single',
+    q:'「免用統一發票收據」每張核銷金額上限是多少？若超過該金額應如何處置？',
+    opts:['上限 3,000 元，超過不可核銷','上限 5,000 元，超過須分多張收據進行核銷','上限 10,000 元，超過需特別製作三聯式發票','無金額上限制'],
+    ans:[1], page:'p.35',
+    exp:'根據簡報第35頁免用統一發票收據規定，每張收據上限金額為 5,000 元，超過請分多張核銷。' },
+  { id:6, type:'single',
+    q:'關於電子發票（網購或打印 A4 列印）的列印與核銷要求，下列何者正確？',
+    opts:['不需交易明細，直接裁剪發票截圖貼上即可','必須以 A4 列印，不需裁切或黏貼，且需附上發票購物清單 or 交易明細','可以用手機截圖直接帶給會計結帳','必須縮小發票後，加蓋發票專用章'],
+    ans:[1], page:'p.36',
+    exp:'根據簡報第36頁規定，電子發票需附上發票購物清單或交易明細，且需以 A4 列印，不需裁切或黏貼。' },
+  { id:7, type:'single',
+    q:'關於電話費核銷的申請程序與限制，下列何者正確？',
+    opts:['可以直接核銷月租費與通話費，無需申請','需先向製片申請後採實報實銷（不含月租費），並以個人勞報核銷、附上電話帳單及通話明細','只能核銷月租費，通話費一律自理','不需附通話明細，帳單及通話明細附一不可'],
+    ans:[1], page:'p.37',
+    exp:'根據簡報第37頁電話費規定，電話費需先向製片申請後採實報實銷（不含月租費），並以個人勞報核銷，且必須附上電話帳單及通話明細。' },
+  { id:8, type:'single',
+    q:'執行業務所得（9A代入，如個人出租），單筆給付金額超過多少（含）以上且未提供工會證明時，需代扣 10% 所得稅及 2.11% 補充保費？',
+    opts:['$20,000','$20,010','$29,500','$90,501'],
+    ans:[0], page:'p.45',
+    exp:'根據簡報第45頁，執行業務所得(9A)單筆給付金額在 $20,000 (含) 以上，若未提供工會繳費證明 or 繳費收據者，代扣該筆收入的 10% 所得稅及 2.11% 補充保費。' },
+  { id:9, type:'multi',
+    q:'向廠商請款申請廠商款時，需提供哪些文件及資訊？',
+    opts:['包含品項、數量、金額及廠商之報價單','發票本子即可，不需要提供發票正本','場景及場景編號','存摺封面（收款對象需與發票開立廠商或簽約對象相同）','相關日期（如拍攝/取貨/租借/歸還日期）'],
+    ans:[0,2,3,4], page:'p.5',
+    exp:'根據簡報第5頁「廠商請款流程」，上述要求（報價單、場景、存摺、日期）及發票正本（非本子）為必須提供之項目。' },
+  { id:10, type:'multi',
+    q:'關於每週回帳的分類與交帳方式，下列哪些敘述是正確的？（多選）',
+    opts:['生活費請以「個人」為單位交帳','基本組耗材（如大力膠、噴膠、噴漆、束帶、垃圾袋）不需與生活費、製作費分開','製作費請以「小組」為單位交帳，說明每位組員回帳金額','回帳時必須將生活費、製作費及基本組耗材分開，並以日期將發票排序'],
+    ans:[0,2,3], page:'p.6',
+    exp:'根據簡報第6頁「核銷方式」，生活費以個人為單位交帳，製作費以小組為單位交帳；回帳時需將生活費、製作費、基本組耗材分開，並以日期排序。基本組耗材不可與生活費 or 製作費混合在一起交帳。' },
+  { id:11, type:'multi',
+    q:'在製作費單據上，關於陳設組與現場組的標記說明規定，下列哪些是正確的？（多選）',
+    opts:['陳設組需在空白處以鉛筆標記：購買人/場景編號/品項名稱/數量','若購買的物品數量僅為1，為了省時，不需標記數量 X1','現場組需在空白處以鉛筆標記：購買人/場次/演員/品項名稱/數量','若為租賃物品，必須另外標記「租期」'],
+    ans:[0,2,3], page:'p.7',
+    exp:'根據簡報第7頁，陳設與現場組在單據空白處的標記格式均有明文規定，租賃物品必須注明租期。且「若物品數量為1，仍需標記數量 X1」，不可以省略。' },
+  { id:12, type:'multi',
+    q:'關於設計組與平面組在核銷時的特殊規定，下列哪些是正確的？（多選）',
+    opts:['平面輸出或設計品發包，核銷時需附上印刷尺寸、個別數量','為節省報帳數量，不同場景所使用的零件工具，可以合併放在同一張發票中','購買零件及耗材需於空白處以鉛筆標明用途','報帳照片必須以實品照片為主，設計圖檔無法進行結帳'],
+    ans:[0,2,3], page:'p.7, p.8',
+    exp:'根據簡報第8頁與第7頁規定，平面/設計組報帳需附上尺寸與數量，報帳以實品為主、圖檔為輔。購買零件及耗材需標明用途。另外，不同場景的支出，須「分別開立發票」，不可合併放在一起。' },
+  { id:13, type:'multi',
+    q:'美術組在單據上夾帳報帳照片時，關於檔名中「金額」的標記規定，下列哪些敘述是正確的？',
+    opts:['1,940','22,250','5897','報帳照片名稱不需要標記金額，只需寫購買人的品項 and 購買人名字即可'],
+    ans:[2], page:'p.10',
+    exp:'根據簡報第10頁，上傳報帳照片檔名格式為「場景編號 物品 金額」，且「不需千分位,」！所以含逗號的 1,940 和 22,250 是不合格的，只有 5897 是符合規定無千分位逗號的寫法。' },
+  { id:14, type:'multi',
+    q:'補單據遺失、不合格 or 單生無單據支出時，以下哪些做法符合規定？（多選）',
+    opts:['直接告知會計金額，不需附任何文件即可核銷','提供原始單據或訂單頁面、截圖、對話紀錄','提供包含姓名電話之領據，內容需包含品項及購買金額','若以外幣付款，需附支付當日台灣銀行即期賣出匯率證明'],
+    ans:[1,2,3], page:'p.12, p.13',
+    exp:'根據簡報第12頁與13頁，補單據需提供非餐飲交通之合格單據，並附帶原始單據或訂單頁面、截圖、對話紀錄。另外需附支付當日台灣銀行歷史匯率為換算依據。「沒有附件，不得核銷」。' },
+  { id:15, type:'multi',
+    q:'關於公有停車格的核銷流程，下列哪些是正確的？（多選）',
+    opts:['7-11 繳費時，一張繳費證明單為一張單據，單次繳多張停車單請自行裁剪','公有停車格只需要繳費收據即可核銷，不需要停車單','全家繳費時，請勿將收據剪開，同一張繳費收據的停車單按順序疊一起','停車單遺失時，可至停管處網站列印已繳費明細，並與繳費收據一同繳交'],
+    ans:[0,2,3], page:'p.16, p.18, p.19',
+    exp:'根據簡報第16、18、19頁「交通單據/公有停車格」核銷規定，公有停車格必須有「停車單」及「繳費收據」兩者。停車單遺失需上停管處網站列印已繳證明；第三方支付繳費者需上停管處網頁輸入抬頭統編列印繳費收據，並於與原始停車單一同繳交。全家繳費明細請勿裁開。' },
+  { id:16, type:'multi',
+    q:'關於「免用統一發票收據」的合格條件與使用限制，下列哪些是正確的？（多選）',
+    opts:['需加蓋免用發票專用章（收據專用章與負責人小章）必須齊全','若店家有統一發票專章，可以直接使用此收據核銷','若店家未填寫抬頭/買受人及統編，則請留白以便於核銷前批次蓋章','「除實際餐飲支出外，不可使用餐飲收據核銷其他科目」'],
+    ans:[0,2,3], page:'p.35',
+    exp:'根據簡報第35頁免用統一發票收據規定，大小章（專用章與負責人小章）必須齊全。若「統一發票專章」是不合格的。另外，「除實際餐飲支出外，不可使用餐飲收據核銷其他科目」。' },
+  { id:17, type:'multi',
+    q:'關於三聯式發票的核銷規定，下列哪些敘述是正確的？（多選）',
+    opts:['購買人持有：扣抵聯與收執聯，兩聯皆需附上','若發票金額寫錯，可以塗改後由所得人在塗改處簽名，否則該單據即為無效單據','二聯式發票為無效單據','若大寫金額寫錯，「不可以塗改，必須重新開立」'],
+    ans:[0,1,3], page:'p.34, p.41',
+    exp:'根據簡報第34頁與41頁規定，本公司統編為42865759，三聯式發票購買人必須「扣抵聯」與「收執聯」兩聯都附上。二聯式發票是無效的。若大寫金額填寫錯誤，「不可以塗改，必須重新開立」。' },
+  { id:18, type:'multi',
+    q:'下列哪些情況會使勞務報酬單被判定為「不合格」而無法免扣二代健保補充保費？（多選）',
+    opts:['工會證明上有被保險人姓名，且繳費期間完整清楚（年月）','工會證明上無姓名，無法證明此張繳費收據為何者的繳費收據','工會證明僅能證明加保日，無法證明此時仍為在保狀態','工會證明僅能證明108/1/1~109/2/12為在保期間，無法證明109/2/12之後仍在保'],
+    ans:[1,2,3], page:'p.47, p.48',
+    exp:'根據簡報第47頁與48頁，合格工會證明「必須載明：被保險人姓名、繳費期間（年月）」。無姓名、無繳費期間、或者只能證明加保日的證明，一律為不合格證明，被判為不合格者，需代扣補充保費。' },
+  { id:19, type:'tf',
+    q:'若發票因為漏打統編，事後在發票上補蓋店家「統一發票專用章」之後，該張發票即可視為合格發票進行核銷。',
+    opts:['正確 (True)','錯誤 (False)'],
+    ans:[1], page:'p.33, p.40',
+    exp:'根據簡報第33頁及40頁重點 QA，如漏打統編而補蓋店章者為「無效單據」，不可以核銷，必須重新開立。' },
+  { id:20, type:'tf',
+    q:'為了減少報帳單據的數量，不同場景所使用的零件工具，可以合併放在同一張發票中。',
+    opts:['正確 (True)','錯誤 (False)'],
+    ans:[1], page:'p.7, p.8',
+    exp:'根據簡報第7頁與第8頁報帳方式特別強調：「雜支耗材及不同場景的支出，須分別開立發票」，不同場景所使用的零件工具不可合併放在同一張發票中。' },
+  { id:21, type:'tf',
+    q:'計程車資在核銷時，除了附上乘車收據，收據上的規定資訊外，還必須用鉛筆加記搭乘起訖點、搭乘對象與搭乘事由。',
+    opts:['正確 (True)','錯誤 (False)'],
+    ans:[0], page:'p.17, p.30',
+    exp:'根據簡報第17頁與30頁計程車乘車證明規定，乘車收據需有日期、金額、車號、司機姓名，且必須以鉛筆標明搭乘起訖點、搭乘人員及搭乘事由。有任一塗改即為無效單據。' },
+  { id:22, type:'tf',
+    q:'勞務報酬單上的領款人姓名欄，為了方便在外面工作的同仁，可以請代為工作的同事，以手機 or 平板「電子簽名」後列印送交。',
+    opts:['正確 (True)','錯誤 (False)'],
+    ans:[1], page:'p.32, p.40',
+    exp:'根據簡報第32頁及第40頁重點 QA，勞報單「不可以電子簽」，領款人必須親筆簽名，且須避免代簽。' },
+  { id:23, type:'tf',
+    q:'ETC 通行費在核銷時，除了提供通行費繳費紀錄之外，還必須印出「過站證明」，且兩者均必須印有遠通電收電子憑證專用章。',
+    opts:['正確 (True)','錯誤 (False)'],
+    ans:[0], page:'p.17, p.21',
+    exp:'根據簡報第17頁與21頁規定，ETC 通行費核銷需要「通行費紀錄」與「過站證明」兩者，且需有遠通電收電子憑證專用章。' },
+  { id:24, type:'tf',
+    q:'開拍後的餐飲費補貼標準是 早餐/宵夜 70 元、午餐/晚餐 90 元，交帳時必須依照個人實際工作時間填寫餐費表。',
+    opts:['正確 (True)','錯誤 (False)'],
+    ans:[0], page:'p.15',
+    exp:'根據簡報第15頁，開拍後早餐/宵夜 $70、午餐/晚餐 $90。必須視個人實際工作時間填寫餐費表（以通告時間為補貼標準）。' },
+  { id:25, type:'tf',
+    q:'每週核銷的金額若很少（例如不到 100 元），可以累積多週再一起回帳，不需每週回帳。',
+    opts:['正確 (True)','錯誤 (False)'],
+    ans:[1], page:'p.6, p.40',
+    exp:'根據簡報第6頁及40頁 QA，無論核銷金額多 or 少，每週均需回帳。不可因金額少而不交。' },
+  { id:26, type:'tf',
+    q:'勞務報酬單上的任何金額、個人資料，如果需要更正，必須請所得人在塗改處簽名，否則該單據即為無效單據。',
+    opts:['正確 (True)','錯誤 (False)'],
+    ans:[1], page:'p.32',
+    exp:'根據簡報第32頁勞務單規定，該單據「有任一塗改即為無效單據」。如果只需要塗改，即直接作廢，不應在塗改處簽名來蒙混。' },
+  { id:27, type:'tf',
+    q:'外幣付款核銷，核銷金額換算台幣必須以「台灣銀行歷史匯率」中的「即期買入」匯率為換算依據。',
+    opts:['正確 (True)','錯誤 (False)'],
+    ans:[1], page:'p.12, p.13',
+    exp:'根據簡報第12頁與13頁，外幣核銷必須使用「台灣銀行歷史匯率」之支付當日或扣款當日即期「賣出」匯率（而非即期買入）進行換算，這是如果公司向外採購才是站在買入的立場。' },
 ];
 
-const ANSWERS = {
-  1:['A'], 2:['B'], 3:['C'], 4:['C'], 5:['B'], 6:['B'], 7:['B'], 8:['A'],
-  9:['A','C','D','E'], 10:['A','C','D'], 11:['A','C','D'], 12:['A','C','D'],
-  13:['C'], 14:['B','C','D'], 15:['A','C','D'], 16:['A','C','D'],
-  17:['A','B','D'], 18:['B','C','D'],
-  19:['B'], 20:['B'], 21:['A'], 22:['B'], 23:['A'], 24:['A'],
-  25:['B'], 26:['B'], 27:['B'],
+/* ══ STATE ══ */
+const S = {
+  name:      '',
+  qi:        0,       // current question index (0-based)
+  answers:   Array(27).fill(0).map(()=>[]),
+  submitted: null,    // { name, score, answers, submittedAt }
+  subs:      [],      // all Firestore submissions
 };
 
-const TAKER_PW = '60049018';
-const ADMIN_PW = '5897';
-
-let currentUser = '';
-let userAnswers = {};
-let allResults  = [];
-
-/* ── HELPERS ── */
-function showScreen(id) {
+/* ══ SCREEN HELPERS ══ */
+function show(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).style.display = '';
   document.getElementById(id).classList.add('active');
   window.scrollTo(0, 0);
 }
-
-function updateProgress() {
-  const answered = Object.keys(userAnswers).length;
-  document.getElementById('progress-fill').style.width = (answered / QUESTIONS.length * 100) + '%';
+function err(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg || el.textContent;
+  el.style.display = 'block';
 }
+function clearErr(id) { document.getElementById(id).style.display = 'none'; }
 
-/* ── LOGIN ── */
-window.doLogin = function() {
-  const name = document.getElementById('login-name').value.trim();
-  const pw   = document.getElementById('login-password').value.trim();
-  const err  = document.getElementById('login-error');
-  if (!name) { err.textContent = '請輸入您的姓名'; return; }
-  if (pw === ADMIN_PW) {
-    currentUser = name;
-    err.textContent = '';
-    showScreen('admin-screen');
-    loadAdmin();
-  } else if (pw === TAKER_PW) {
-    currentUser = name;
-    err.textContent = '';
-    buildQuiz();
-    showScreen('quiz-screen');
-  } else {
-    err.textContent = '密碼錯誤，請重試';
-  }
+/* ══ PASSWORD ══ */
+window.doPwSubmit = function() {
+  const v = document.getElementById('pw-input').value.trim();
+  if (v === PW_TAKER || v === PW_ADMIN) { clearErr('pw-err'); show('screen-cover'); }
+  else err('pw-err');
 };
+document.getElementById('pw-input').onkeydown = e => e.key==='Enter' && doPwSubmit();
 
-document.getElementById('login-password').addEventListener('keydown', e => {
-  if (e.key === 'Enter') doLogin();
+/* ══ COVER ══ */
+window.doStartQuiz = function() {
+  const n = document.getElementById('cover-name').value.trim();
+  if (!n) { err('cover-err'); return; }
+  clearErr('cover-err');
+  S.name    = n;
+  S.qi      = 0;
+  S.answers = Array(27).fill(0).map(()=>[]);
+  renderQ(0);
+  show('screen-quiz');
+};
+document.getElementById('cover-name').onkeydown = e => e.key==='Enter' && doStartQuiz();
+
+/* ══ ADMIN MODAL ══ */
+window.openAdminModal = function() {
+  document.getElementById('adm-pw').value = '';
+  clearErr('adm-err');
+  document.getElementById('overlay-admin').classList.add('open');
+  setTimeout(()=>document.getElementById('adm-pw').focus(), 200);
+};
+window.closeAdminModal = function() {
+  document.getElementById('overlay-admin').classList.remove('open');
+};
+window.doAdminLogin = function() {
+  if (document.getElementById('adm-pw').value.trim() === PW_ADMIN) {
+    closeAdminModal();
+    loadReport();
+    show('screen-report');
+  } else { err('adm-err'); }
+};
+document.getElementById('adm-pw').onkeydown = e => e.key==='Enter' && doAdminLogin();
+document.getElementById('overlay-admin').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeAdminModal();
 });
 
-/* ── BUILD QUIZ ── */
-function buildQuiz() {
-  userAnswers = {};
-  const container = document.getElementById('questions-container');
-  container.innerHTML = '';
-  let lastType = '';
-  QUESTIONS.forEach(q => {
-    if (q.type !== lastType) {
-      const lbl = document.createElement('div');
-      lbl.className = 'section-label';
-      lbl.textContent = q.type === 'single' ? '單選題' : q.type === 'multi' ? '多選題' : '是非題';
-      container.appendChild(lbl);
-      lastType = q.type;
-    }
-    const card = document.createElement('div');
-    card.className = 'question-card';
-    const tagText = q.type === 'single' ? '單選' : q.type === 'multi' ? '複選' : '是非';
-    const tagClass = q.type === 'single' ? 'tag-single' : q.type === 'multi' ? 'tag-multi' : 'tag-bool';
-    let optsHTML = '';
-    if (q.type === 'bool') {
-      optsHTML = ['A:正確','B:錯誤'].map(o => {
-        const [k,v] = o.split(':');
-        return `<label class="option-label" id="lbl-${q.id}-${k}">
-          <input type="radio" name="q${q.id}" value="${k}" onchange="selectAnswer(${q.id},'${k}','single')"> ${k}. ${v}
-        </label>`;
-      }).join('');
-    } else if (q.type === 'single') {
-      optsHTML = Object.entries(q.opts).map(([k,v]) => `
-        <label class="option-label" id="lbl-${q.id}-${k}">
-          <input type="radio" name="q${q.id}" value="${k}" onchange="selectAnswer(${q.id},'${k}','single')"> ${k}. ${v}
-        </label>`).join('');
-    } else {
-      optsHTML = Object.entries(q.opts).map(([k,v]) => `
-        <label class="option-label" id="lbl-${q.id}-${k}">
-          <input type="checkbox" name="q${q.id}" value="${k}" onchange="selectAnswer(${q.id},'${k}','multi')"> ${k}. ${v}
-        </label>`).join('');
-    }
-    card.innerHTML = `
-      <div class="q-num">第 ${q.id} 題 <span class="tag ${tagClass}">${tagText}</span></div>
-      <div class="q-text">${q.text}</div>
-      <div class="options">${optsHTML}</div>`;
-    container.appendChild(card);
-  });
+/* ══ QUIZ ══ */
+function renderQ(i) {
+  const q   = QS[i];
+  const pct = Math.round(i/27*100);
+  document.getElementById('quiz-count').textContent = `${i+1} / 27`;
+  document.getElementById('prog-fill').style.width   = pct + '%';
+  document.getElementById('btn-next').textContent   = i===26 ? '交卷' : '下一題';
+
+  const typeLabel = {single:'單選題', multi:'多選題', tf:'是非題'}[q.type];
+  const badgeCls  = {single:'q-single', multi:'q-multi', tf:'q-tf'}[q.type];
+  const hint      = q.type==='multi' ? '<div class="q-hint">⚠️ 多選題，可選多個選項</div>' : '';
+
+  const optsHtml = q.opts.map((txt, idx) => {
+    const sel = S.answers[i].includes(idx);
+    const ctrl = q.type==='multi'
+      ? `<div class="opt-box">${sel?'✓':''}</div>`
+      : `<div class="opt-ctrl"><div class="opt-dot"></div></div>`;
+    return `<div class="opt${sel?' sel':''}" onclick="pickOpt(${i},${idx})">${ctrl}<span class="opt-text">${txt}</span></div>`;
+  }).join('');
+
+  document.getElementById('quiz-body').innerHTML =
+    `<span class="q-badge ${badgeCls}">${typeLabel}</span>
+     <div class="q-text">第 ${q.id} 題　${q.q}</div>
+     ${hint}
+     <div class="opts">${optsHtml}</div>`;
+
+  document.getElementById('btn-next').disabled = S.answers[i].length === 0;
 }
 
-window.selectAnswer = function(qid, val, type) {
-  if (type === 'single') {
-    userAnswers[qid] = [val];
-    QUESTIONS.find(q=>q.id===qid).opts && Object.keys(QUESTIONS.find(q=>q.id===qid).opts || {A:1,B:1}).forEach(k => {
-      const lbl = document.getElementById(`lbl-${qid}-${k}`);
-      if (lbl) lbl.classList.toggle('selected', k === val);
-    });
-    if (!QUESTIONS.find(q=>q.id===qid).opts) {
-      ['A','B'].forEach(k => {
-        const lbl = document.getElementById(`lbl-${qid}-${k}`);
-        if (lbl) lbl.classList.toggle('selected', k === val);
-      });
-    }
+window.pickOpt = function(qi, oi) {
+  const q = QS[qi];
+  if (q.type==='single'||q.type==='tf') {
+    S.answers[qi] = [oi];
   } else {
-    if (!userAnswers[qid]) userAnswers[qid] = [];
-    const set = new Set(userAnswers[qid]);
-    const lbl = document.getElementById(`lbl-${qid}-${val}`);
-    const cb  = lbl && lbl.querySelector('input');
-    if (cb && cb.checked) { set.add(val); lbl.classList.add('selected'); }
-    else                  { set.delete(val); if(lbl) lbl.classList.remove('selected'); }
-    userAnswers[qid] = [...set];
+    const a = S.answers[qi]; const p = a.indexOf(oi);
+    if (p===-1) a.push(oi); else a.splice(p,1);
+    S.answers[qi] = [...a].sort((x,y)=>x-y);
   }
-  updateProgress();
+  renderQ(qi);
 };
 
-/* ── SUBMIT ── */
-window.submitQuiz = async function() {
-  const unanswered = QUESTIONS.filter(q => !userAnswers[q.id] || userAnswers[q.id].length === 0);
-  if (unanswered.length > 0) {
-    if (!confirm(`還有 ${unanswered.length} 題未作答（第 ${unanswered.map(q=>q.id).join('、')} 題），確定交卷？`)) return;
-  }
+window.doNext = async function() {
+  if (S.answers[S.qi].length===0) return;
+  if (S.qi===26) { await doSubmit(); return; }
+  S.qi++;
+  renderQ(S.qi);
+  window.scrollTo(0,0);
+};
 
-  const btn = document.getElementById('submit-btn');
-  btn.disabled = true;
-  btn.textContent = '送出中…';
+/* ══ SUBMIT ══ */
+async function doSubmit() {
+  const btn = document.getElementById('btn-next');
+  btn.disabled = true; btn.textContent = '送出中…';
 
   let score = 0;
-  const detail = {};
-  QUESTIONS.forEach(q => {
-    const ans = ANSWERS[q.id].slice().sort().join(',');
-    const usr = (userAnswers[q.id] || []).slice().sort().join(',');
-    const correct = ans === usr;
-    if (correct) score++;
-    detail[q.id] = { user: userAnswers[q.id] || [], correct };
-  });
+  QS.forEach((q,i) => { if (grade(q,S.answers[i])) score++; });
 
-  try {
-    await addDoc(collection(db, 'quizResults'), {
-      name: currentUser,
-      score,
-      total: QUESTIONS.length,
-      answers: userAnswers,
-      submittedAt: serverTimestamp(),
-    });
-  } catch(e) {
-    console.error(e);
-  }
+  const rec = { name: S.name, score, total:27, answers: S.answers.map(a=>[...a]), submittedAt: serverTimestamp() };
+  try { await addDoc(collection(db,'quizResults'), rec); } catch(e){ console.warn(e); }
 
-  document.getElementById('result-score').textContent = score;
-  document.getElementById('result-name').textContent = currentUser + ' 的成績';
-  const pct = Math.round(score / QUESTIONS.length * 100);
-  document.getElementById('result-msg').textContent = pct >= 80
-    ? `🎉 恭喜通過！正確率 ${pct}%` : `正確率 ${pct}%，建議再複習一次核銷須知 📖`;
-  showScreen('result-screen');
-};
-
-window.resetQuiz = function() {
-  userAnswers = {};
-  document.getElementById('login-name').value = '';
-  document.getElementById('login-password').value = '';
-  document.getElementById('login-error').textContent = '';
-};
-
-/* ── ADMIN ── */
-window.loadAdmin = async function() {
-  document.getElementById('admin-table-container').innerHTML = '<div class="loading">載入中…</div>';
-  try {
-    const q   = query(collection(db, 'quizResults'), orderBy('submittedAt', 'desc'));
-    const snap = await getDocs(q);
-    allResults = [];
-    snap.forEach(doc => allResults.push({ id: doc.id, ...doc.data() }));
-    renderAdmin();
-  } catch(e) {
-    document.getElementById('admin-table-container').innerHTML = `<div class="loading">載入失敗：${e.message}</div>`;
-  }
-};
-
-function renderAdmin() {
-  const total = allResults.length;
-  const avg   = total ? (allResults.reduce((s,r)=>s+r.score,0)/total).toFixed(1) : '--';
-  const pass  = allResults.filter(r=>r.score/r.total>=0.8).length;
-
-  document.getElementById('admin-stats').innerHTML = `
-    <div class="stat-card"><div class="stat-val">${total}</div><div class="stat-label">總作答人次</div></div>
-    <div class="stat-card"><div class="stat-val">${avg}</div><div class="stat-label">平均分數</div></div>
-    <div class="stat-card"><div class="stat-val">${pass}</div><div class="stat-label">通過人數（≥80%）</div></div>`;
-
-  if (!allResults.length) {
-    document.getElementById('admin-table-container').innerHTML = '<div class="loading">尚無作答紀錄</div>';
-    return;
-  }
-  const rows = allResults.map((r,i) => {
-    const pct  = Math.round(r.score / r.total * 100);
-    const cls  = pct >= 80 ? 'score-pass' : 'score-fail';
-    const time = r.submittedAt ? new Date(r.submittedAt.seconds*1000).toLocaleString('zh-TW') : '--';
-    return `<tr>
-      <td>${i+1}</td>
-      <td><strong>${r.name || '--'}</strong></td>
-      <td><span class="score-badge ${cls}">${r.score} / ${r.total}（${pct}%）</span></td>
-      <td>${time}</td>
-      <td><span class="detail-link" onclick="showDetail(${i})">查看詳情</span></td>
-    </tr>`;
-  }).join('');
-  document.getElementById('admin-table-container').innerHTML = `
-    <table class="admin-table">
-      <thead><tr><th>#</th><th>姓名</th><th>成績</th><th>作答時間</th><th>詳情</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>`;
+  S.submitted = { ...rec, submittedAt: new Date() };
+  await loadSubs();
+  buildResult();
+  show('screen-result');
 }
 
-window.showDetail = function(idx) {
-  const r = allResults[idx];
-  document.getElementById('detail-title').textContent = `${r.name} 的作答詳情（${r.score}/${r.total}）`;
-  let html = '';
-  QUESTIONS.forEach(q => {
-    const ans  = ANSWERS[q.id];
-    const usr  = (r.answers && r.answers[q.id]) ? r.answers[q.id] : [];
-    const ok   = ans.slice().sort().join(',') === usr.slice().sort().join(',');
-    const opts = q.type === 'bool' ? {A:'正確',B:'錯誤'} : (q.opts || {});
-    const chips = Object.entries(opts).map(([k,v]) => {
-      const inAns = ans.includes(k);
-      const inUsr = usr.includes(k);
-      let cls = 'chip-neutral';
-      if (inAns && inUsr) cls = 'chip-correct';
-      else if (!inAns && inUsr) cls = 'chip-wrong';
-      else if (inAns && !inUsr) cls = 'chip-neutral';
-      return `<span class="dq-chip ${cls}">${k}. ${v}</span>`;
+function grade(q, ua) {
+  return [...q.ans].sort((a,b)=>a-b).join(',') === [...ua].sort((a,b)=>a-b).join(',');
+}
+
+/* ══ RESULT ══ */
+function buildResult() {
+  const d   = S.submitted;
+  const pct = Math.round(d.score/27*100);
+  const pass = pct >= PASS_PCT*100;
+
+  // Hero
+  document.getElementById('r-hero').innerHTML =
+    `<div class="hero-name">${d.name} 的測驗成績</div>
+     <div class="hero-score">${d.score}</div>
+     <div class="hero-total">/ 27 題</div>
+     <div class="hero-pct">${pct}%</div>
+     <div class="hero-badge ${pass?'badge-pass':'badge-fail'}">${pass?'🎉 及格（80% 以上）':'❌ 未及格（需達 80% 以上）'}</div>`;
+
+  // Top 5
+  buildTop5('r-top5', S.subs);
+
+  // Ranks
+  buildRanks('r-ranks', d.name);
+
+  // Reviews
+  document.getElementById('r-reviews').innerHTML =
+    QS.map((q,i) => {
+      const ua = d.answers[i]||[];
+      const ok = grade(q,ua);
+      const userStr    = ua.length ? ua.map(x=>q.opts[x]).join('、') : '（未作答）';
+      const correctStr = q.ans.map(x=>q.opts[x]).join('、');
+      const typeMap    = {single:'單選',multi:'多選',tf:'是非'};
+      return `<div class="review ${ok?'ok':'bad'}">
+        <div class="rv-head">
+          <div class="rv-icon">${ok?'✅':'❌'}</div>
+          <div>
+            <div class="rv-meta">第 ${q.id} 題 ● ${typeMap[q.type]}</div>
+            <div class="rv-q">${q.q}</div>
+          </div>
+        </div>
+        <div class="rv-ans">
+          <div class="rv-user">您的答案：${userStr}</div>
+          ${!ok?`<div class="rv-correct">✓ 正確答案：${correctStr}</div>`:''}
+        </div>
+        <div class="rv-explain">${q.exp}<br><span class="rv-page">📄 出處：《便利商店 美術組核銷須知 簡報版》${q.page}</span></div>
+      </div>`;
     }).join('');
-    html += `<div class="detail-q">
-      <div class="dq-label">${ok ? '✅' : '❌'} 第 ${q.id} 題</div>
-      <div class="dq-text">${q.text}</div>
-      <div class="dq-label">正確答案：${ans.join('、')}　　作答：${usr.length ? usr.join('、') : '（未作答）'}</div>
-      <div class="dq-opts">${chips}</div>
+}
+
+function buildTop5(containerId, subs) {
+  const el = document.getElementById(containerId);
+  if (!subs.length) { el.innerHTML = '<p style="color:var(--muted);font-size:.85rem;padding:8px 0;">暫無足夠數據</p>'; return; }
+  const rows = QS.map((q,i) => {
+    const wrong = subs.filter(s=>!grade(q,s.answers[i]||[])).length;
+    return { q, rate: wrong/subs.length };
+  }).sort((a,b)=>b.rate-a.rate).slice(0,5);
+  el.innerHTML = rows.map((r,idx)=>`
+    <div class="top5-row">
+      <div class="t5-num">#${idx+1}</div>
+      <div class="t5-info">
+        <div class="t5-id">第 ${r.q.id} 題</div>
+        <div class="t5-q">${r.q.q.length>38?r.q.q.slice(0,38)+'…':r.q.q}</div>
+      </div>
+      <div class="t5-rate">${Math.round(r.rate*100)}%<br><span style="font-size:.7rem;font-weight:400;color:var(--muted);">錯誤率</span></div>
+    </div>`).join('');
+}
+
+function buildRanks(containerId, myName) {
+  const el = document.getElementById(containerId);
+  if (!S.subs.length) { el.innerHTML = '<p style="color:var(--muted);font-size:.85rem;padding:8px 0;">暫無紀錄</p>'; return; }
+  const best = {};
+  S.subs.forEach(s => { if (!best[s.name]||s.score>best[s.name].score) best[s.name]=s; });
+  const list = Object.values(best).sort((a,b)=>b.score-a.score);
+  el.innerHTML = list.map((p,i)=>{
+    const rc = i===0?'rn-gold':i===1?'rn-silver':i===2?'rn-bronze':'';
+    const me = p.name===myName;
+    return `<div class="rank-row ${me?'me':''}">
+      <div class="rank-num ${rc}">${['🥇','🥈','🥉'][i]||i+1}</div>
+      <div class="rank-name">${p.name}${me?' <span style="color:var(--accent);font-size:.75rem;">（你）</span>':''}</div>
+      <div class="rank-score">${p.score}/27 · ${Math.round(p.score/27*100)}%</div>
     </div>`;
-  });
-  document.getElementById('detail-container').innerHTML = html;
-  showScreen('detail-screen');
+  }).join('');
+}
+
+/* ══ REPORT ══ */
+window.loadReport = async function() {
+  document.getElementById('rpt-body').innerHTML = '<div class="loading"><div class="spin"></div>載入資料中…</div>';
+  await loadSubs();
+  buildReport();
 };
+
+async function loadSubs() {
+  try {
+    const snap = await getDocs(query(collection(db,'quizResults'), orderBy('submittedAt','asc')));
+    S.subs = [];
+    snap.forEach(d => S.subs.push({ id:d.id, ...d.data() }));
+  } catch(e) { console.warn(e); }
+}
+
+function buildReport() {
+  const subs = S.subs;
+  if (!subs.length) { document.getElementById('rpt-body').innerHTML='<div class="loading">尚無作答紀錄</div>'; return; }
+
+  const unique = [...new Set(subs.map(s=>s.name))];
+  const avg    = (subs.reduce((a,b)=>a+b.score,0)/subs.length).toFixed(1);
+  const passed = subs.filter(s=>s.score/27>=PASS_PCT).length;
+
+  const best = {};
+  subs.forEach(s=>{ if(!best[s.name]||s.score>best[s.name].score) best[s.name]=s; });
+  const rankList = Object.values(best).sort((a,b)=>b.score-a.score);
+
+  const acc = QS.map((q,i)=>({
+    q, rate: subs.filter(s=>grade(q,s.answers[i]||[])).length/subs.length
+  }));
+  const top5err = [...acc].sort((a,b)=>a.rate-b.rate).slice(0,5);
+
+  const hist = {};
+  subs.forEach(s=>{ if(!hist[s.name]) hist[s.name]=[]; hist[s.name].push(s); });
+
+  document.getElementById('rpt-body').innerHTML = `
+    <!-- Summary -->
+    <div class="summary-grid">
+      ${[['👥',unique.length,'參與人數'],['📝',subs.length,'作答次數'],['⭐',avg,'平均分數'],['🏆',passed,'及格人次']]
+        .map(([ic,v,l])=>`<div class="summary-card"><div class="sc-icon">${ic}</div><div class="sc-val">${v}</div><div class="sc-label">${l}</div></div>`).join('')}
+    </div>
+
+    <!-- Ranking -->
+    <div class="rpt-section">
+      <div class="rpt-title">🏆 排行榜（各人最高分）</div>
+      <div class="card" style="padding:0;overflow:hidden;">
+        <table class="rank-table">
+          <thead><tr><th>名次</th><th>姓名</th><th>最高分</th><th>正確率</th><th>時間</th></tr></thead>
+          <tbody>${rankList.map((p,i)=>{
+            const t = p.submittedAt ? new Date(p.submittedAt.seconds*1000).toLocaleString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '--';
+            return `<tr>
+              <td>${['🥇','🥈','🥉'][i]||i+1}</td>
+              <td><strong>${p.name}</strong></td>
+              <td><strong>${p.score}/27</strong></td>
+              <td>${Math.round(p.score/27*100)}%</td>
+              <td style="color:var(--muted);font-size:.78rem">${t}</td>
+            </tr>`;
+          }).join('')}</tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Bar chart -->
+    <div class="rpt-section">
+      <div class="rpt-title">📊 每題答對率</div>
+      <div class="card">
+        <div class="bar-chart-wrap">
+          ${acc.map(({q,rate})=>{
+            const p=Math.round(rate*100); const lo=p<50;
+            return `<div class="bar-row">
+              <div class="bar-label">Q${q.id}</div>
+              <div class="bar-track"><div class="bar-fill ${lo?'bf-lo':'bf-hi'}" style="width:${p}%"></div></div>
+              <div class="bar-pct">${p}%</div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+    </div>
+
+    <!-- Top 5 errors -->
+    <div class="rpt-section">
+      <div class="rpt-title">🔥 錯誤率最高的五題</div>
+      <div class="top5-list">
+        ${top5err.map((r,idx)=>`
+          <div class="top5-row">
+            <div class="t5-num">#${idx+1}</div>
+            <div class="t5-info">
+              <div class="t5-id">第 ${r.q.id} 題</div>
+              <div class="t5-q">${r.q.q.length>40?r.q.q.slice(0,40)+'…':r.q.q}</div>
+            </div>
+            <div class="t5-rate">${Math.round((1-r.rate)*100)}%<br><span style="font-size:.7rem;font-weight:400;color:var(--muted);">錯誤率</span></div>
+          </div>`).join('')}
+      </div>
+    </div>
+
+    <!-- Individual history -->
+    <div class="rpt-section">
+      <div class="rpt-title">📋 個人作答歷史</div>
+      ${Object.entries(hist).map(([name,attempts])=>{
+        const desc = [...attempts].sort((a,b)=>(b.submittedAt?.seconds||0)-(a.submittedAt?.seconds||0));
+        const best = Math.max(...attempts.map(a=>a.score));
+        return `<div class="hist-person">
+          <div class="hist-head" onclick="this.nextElementSibling.classList.toggle('open')">
+            <div>
+              <span class="hist-name">${name}</span>
+              <span class="hist-meta" style="margin-left:8px">最高 ${best}/27 · ${Math.round(best/27*100)}%</span>
+            </div>
+            <span class="hist-count">${attempts.length} 次 ▾</span>
+          </div>
+          <div class="hist-rows">
+            ${desc.map((a,j)=>{
+              const t = a.submittedAt ? new Date(a.submittedAt.seconds*1000).toLocaleString('zh-TW') : '--';
+              return `<div class="hist-row">
+                <span>第 ${desc.length-j} 次</span>
+                <span class="hist-sc">${a.score}/27（${Math.round(a.score/27*100)}%）</span>
+                <span class="hist-time">${t}</span>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+/* ══ NAVIGATION ══ */
+window.doGoReport = function() { loadReport(); show('screen-report'); };
+window.doBack     = function() { S.submitted ? show('screen-result') : show('screen-cover'); };
+window.doRetake   = function() { S.submitted = null; show('screen-cover'); };
 </script>
 </body>
 </html>
