@@ -272,8 +272,8 @@ input:-webkit-autofill:focus {
 .hist-name  { font-weight: 700; font-size: .9rem; }
 .hist-meta  { font-size: .78rem; color: var(--muted); }
 .hist-count { font-size: .78rem; color: var(--muted); flex-shrink: 0; }
-.hist-rows  { display: none; }
-.hist-rows.open { display: block; }
+.hist-rows  { display: block; }
+.hist-rows.closed { display: none; }
 .hist-row {
   display: flex; align-items: center; justify-content: space-between;
   padding: 9px 16px; border-top: 1px solid var(--border); font-size: .85rem; gap: 12px;
@@ -964,7 +964,7 @@ function buildReport() {
         const desc = [...attempts].sort((a,b)=>(b.submittedAt?.seconds||0)-(a.submittedAt?.seconds||0));
         const best = Math.max(...attempts.map(a=>a.score));
         return `<div class="hist-person">
-          <div class="hist-head" onclick="this.nextElementSibling.classList.toggle('open')">
+          <div class="hist-head" onclick="this.nextElementSibling.classList.toggle('closed')">
             <div>
               <span class="hist-name">${name}</span>
               <span class="hist-meta" style="margin-left:8px">最高 ${best}/27 · ${Math.round(best/27*100)}%</span>
