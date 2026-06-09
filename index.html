@@ -306,7 +306,7 @@ input:focus { border-color: var(--accent); }
 <body>
 
 <!-- ══ PASSWORD ══ -->
-<div id="screen-password" class="screen active">
+<div id="screen-password" class="screen active" style="display:flex">
   <div class="card" style="max-width:400px;width:100%;text-align:center;margin:0 auto;">
     <div class="pw-icon">📋</div>
     <div class="pw-title">《便利商店》美術組</div>
@@ -320,7 +320,7 @@ input:focus { border-color: var(--accent); }
 </div>
 
 <!-- ══ COVER ══ -->
-<div id="screen-cover" class="screen">
+<div id="screen-cover" class="screen" style="display:none">
   <button class="sun-btn" onclick="openAdminModal()" title="管理員入口">☀️</button>
   <div class="cover-card card">
     <div class="cover-tag">美術組 核銷須知</div>
@@ -345,7 +345,7 @@ input:focus { border-color: var(--accent); }
 </div>
 
 <!-- ══ QUIZ ══ -->
-<div id="screen-quiz" class="screen">
+<div id="screen-quiz" class="screen" style="display:none">
   <div class="quiz-top">
     <div class="quiz-top-row">
       <span class="quiz-label">便利商店 美術組</span>
@@ -362,7 +362,7 @@ input:focus { border-color: var(--accent); }
 </div>
 
 <!-- ══ RESULT ══ -->
-<div id="screen-result" class="screen">
+<div id="screen-result" class="screen" style="display:none">
   <div class="page-wrap">
     <div class="hero" id="r-hero"></div>
 
@@ -383,7 +383,7 @@ input:focus { border-color: var(--accent); }
 </div>
 
 <!-- ══ REPORT ══ -->
-<div id="screen-report" class="screen">
+<div id="screen-report" class="screen" style="display:none">
   <div class="page-wrap">
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:24px;">
       <h1 style="font-size:1.25rem;font-weight:800;">📊 完整報告</h1>
@@ -413,21 +413,37 @@ input:focus { border-color: var(--accent); }
 </div>
 
 <script type="module">
-/* ══ FIREBASE ══ */
-import { initializeApp }
-  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimestamp }
-  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+/* ══ FIREBASE（動態載入，避免 CDN 失敗導致整個 module 不執行） ══ */
+let db = null;
+let addDoc, collection, getDocs, query, orderBy, serverTimestamp;
 
-const app = initializeApp({
-  apiKey:            "AIzaSyA2znsVNLZvoTHT1cx9gUFDyIMR6GXxS70",
-  authDomain:        "quiz-5d24c.firebaseapp.com",
-  projectId:         "quiz-5d24c",
-  storageBucket:     "quiz-5d24c.firebasestorage.app",
-  messagingSenderId: "452443218872",
-  appId:             "1:452443218872:web:d735e6062adefcad6ea54d"
-});
-const db = getFirestore(app);
+(async () => {
+  try {
+    const { initializeApp } = await import(
+      "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"
+    );
+    const fs = await import(
+      "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"
+    );
+    const app = initializeApp({
+      apiKey:            "AIzaSyA2znsVNLZvoTHT1cx9gUFDyIMR6GXxS70",
+      authDomain:        "quiz-5d24c.firebaseapp.com",
+      projectId:         "quiz-5d24c",
+      storageBucket:     "quiz-5d24c.firebasestorage.app",
+      messagingSenderId: "452443218872",
+      appId:             "1:452443218872:web:d735e6062adefcad6ea54d"
+    });
+    db              = fs.getFirestore(app);
+    addDoc          = fs.addDoc;
+    collection      = fs.collection;
+    getDocs         = fs.getDocs;
+    query           = fs.query;
+    orderBy         = fs.orderBy;
+    serverTimestamp = fs.serverTimestamp;
+  } catch (e) {
+    console.warn('Firebase 無法載入，測驗仍可作答但結果不會儲存。', e);
+  }
+})();
 
 /* ══ CONSTANTS ══ */
 const PW_TAKER = '60049018';
@@ -583,9 +599,17 @@ const S = {
 };
 
 /* ══ SCREEN HELPERS ══ */
+const FLEX_SCREENS = new Set(['screen-password','screen-cover']);
 function show(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.screen').forEach(s => {
+    s.style.display = 'none';
+    s.classList.remove('active');
+  });
+  const el = document.getElementById(id);
+  if (el) {
+    el.style.display = FLEX_SCREENS.has(id) ? 'flex' : 'block';
+    el.classList.add('active');
+  }
   window.scrollTo(0, 0);
 }
 function err(id, msg) {
@@ -695,8 +719,8 @@ async function doSubmit() {
   let score = 0;
   QS.forEach((q,i) => { if (grade(q,S.answers[i])) score++; });
 
-  const rec = { name: S.name, score, total:27, answers: S.answers.map(a=>[...a]), submittedAt: serverTimestamp() };
-  try { await addDoc(collection(db,'quizResults'), rec); } catch(e){ console.warn(e); }
+  const rec = { name: S.name, score, total:27, answers: S.answers.map(a=>[...a]), submittedAt: serverTimestamp ? serverTimestamp() : null };
+  if (db) { try { await addDoc(collection(db,'quizResults'), rec); } catch(e){ console.warn(e); } }
 
   S.submitted = { ...rec, submittedAt: new Date() };
   await loadSubs();
@@ -796,11 +820,12 @@ window.loadReport = async function() {
 };
 
 async function loadSubs() {
+  if (!db) { S.subs = []; return; }
   try {
     const snap = await getDocs(query(collection(db,'quizResults'), orderBy('submittedAt','asc')));
     S.subs = [];
     snap.forEach(d => S.subs.push({ id:d.id, ...d.data() }));
-  } catch(e) { console.warn(e); }
+  } catch(e) { console.warn(e); S.subs = []; }
 }
 
 function buildReport() {
