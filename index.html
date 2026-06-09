@@ -444,8 +444,11 @@ let addDoc, collection, getDocs, query, orderBy, serverTimestamp, deleteDoc, fir
     serverTimestamp = fs.serverTimestamp;
     deleteDoc       = fs.deleteDoc;
     firestoreDoc    = fs.doc;
+    console.log('Firebase 初始化成功');
   } catch (e) {
-    console.warn('Firebase 無法載入，測驗仍可作答但結果不會儲存。', e);
+    console.error('Firebase 初始化失敗：', e);
+    // 在頁面顯示初始化失敗提示
+    window._firebaseInitError = e.message || String(e);
   }
 })();
 
@@ -775,7 +778,8 @@ async function doSubmit() {
       alert('⚠️ 成績儲存失敗：' + (e.message||e) + '\n\n請截圖此訊息回報。');
     }
   } else {
-    console.warn('Firebase 未初始化，成績未儲存');
+    const reason = window._firebaseInitError ? '初始化錯誤：' + window._firebaseInitError : 'Firebase 未載入';
+    alert('⚠️ 成績未儲存（' + reason + '）\n\n請截圖此訊息回報。');
   }
 
   S.submitted = { ...rec, submittedAt: new Date() };
