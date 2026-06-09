@@ -48,8 +48,8 @@ input:focus { border-color: var(--accent); }
 .err { color: var(--error); font-size: .82rem; margin-top: 6px; display: none; }
 
 /* ── PASSWORD ── */
-#screen-password {
-  min-height: 100vh; display: flex; align-items: center;
+#screen-password.active {
+  display: flex; min-height: 100vh; align-items: center;
   justify-content: center; padding: 24px;
 }
 #screen-password .card {
@@ -61,8 +61,8 @@ input:focus { border-color: var(--accent); }
 .pw-fields { display: flex; flex-direction: column; gap: 10px; }
 
 /* ── COVER ── */
-#screen-cover {
-  min-height: 100vh; display: flex; align-items: center;
+#screen-cover.active {
+  display: flex; min-height: 100vh; align-items: center;
   justify-content: center; padding: 24px; position: relative;
 }
 .sun-btn {
