@@ -628,8 +628,12 @@ function err(id, msg) {
 function clearErr(id) { document.getElementById(id).style.display = 'none'; }
 
 /* ══ PASSWORD ══ */
+function normalizeNum(s) {
+  // 全形數字（０-９）→ 半形（0-9），相容中文輸入法全形模式
+  return s.replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0)).trim();
+}
 window.doPwSubmit = function() {
-  const v = document.getElementById('pw-input').value.trim();
+  const v = normalizeNum(document.getElementById('pw-input').value);
   if (v === PW_TAKER || v === PW_ADMIN) { clearErr('pw-err'); show('screen-cover'); }
   else err('pw-err');
 };
