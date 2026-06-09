@@ -39,12 +39,20 @@ body {
 .btn-secondary { background: var(--bg); color: var(--primary); border: 1.5px solid var(--border); }
 .btn-secondary:hover { border-color: #94a3b8; }
 .btn-full { width: 100%; }
-input[type="text"], input[type="password"] {
+input[type="text"], input[type="password"], input[type="tel"] {
   width: 100%; padding: 12px 16px; border: 1.5px solid var(--border);
   border-radius: 10px; font-size: 1rem; outline: none; background: #fff;
   transition: border-color .15s; font-family: inherit;
+  color: #1e293b; -webkit-text-fill-color: #1e293b;
 }
 input:focus { border-color: var(--accent); }
+/* 防止 Safari autofill 把文字變透明 */
+input:-webkit-autofill,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #1e293b !important;
+  -webkit-box-shadow: 0 0 0px 1000px #fff inset !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
 .err { color: var(--error); font-size: .82rem; margin-top: 6px; display: none; }
 
 /* ── PASSWORD ── */
@@ -312,7 +320,7 @@ input:focus { border-color: var(--accent); }
     <div class="pw-title">《便利商店》美術組</div>
     <div class="pw-sub">核銷須知 線上測驗</div>
     <div class="pw-fields">
-      <input type="text" id="pw-input" placeholder="請輸入測驗密碼" autocomplete="off" inputmode="numeric">
+      <input type="tel" id="pw-input" placeholder="請輸入測驗密碼" autocomplete="one-time-code" style="color:#1e293b;-webkit-text-fill-color:#1e293b;">
       <div class="err" id="pw-err">密碼錯誤，請重試</div>
       <button class="btn btn-primary btn-full" onclick="doPwSubmit()">進入</button>
     </div>
@@ -337,7 +345,7 @@ input:focus { border-color: var(--accent); }
       📌 可重複作答，每次均記錄成績
     </div>
     <div class="cover-fields">
-      <input type="text" id="cover-name" placeholder="請輸入您的姓名" autocomplete="off">
+      <input type="text" id="cover-name" placeholder="請輸入您的姓名" autocomplete="name" style="color:#1e293b;-webkit-text-fill-color:#1e293b;">
       <div class="err" id="cover-err">請輸入您的姓名</div>
       <button class="btn btn-primary btn-full" onclick="doStartQuiz()">開始測驗</button>
     </div>
