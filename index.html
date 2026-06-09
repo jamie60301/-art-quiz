@@ -767,7 +767,16 @@ async function doSubmit() {
   QS.forEach((q,i) => { if (grade(q,S.answers[i])) score++; });
 
   const rec = { name: S.name, score, total:27, answers: S.answers.map(a=>[...a]), submittedAt: serverTimestamp ? serverTimestamp() : null };
-  if (db) { try { await addDoc(collection(db,'quizResults'), rec); } catch(e){ console.warn(e); } }
+  if (db) {
+    try {
+      await addDoc(collection(db,'quizResults'), rec);
+    } catch(e) {
+      console.error('addDoc failed:', e);
+      alert('⚠️ 成績儲存失敗：' + (e.message||e) + '\n\n請截圖此訊息回報。');
+    }
+  } else {
+    console.warn('Firebase 未初始化，成績未儲存');
+  }
 
   S.submitted = { ...rec, submittedAt: new Date() };
   await loadSubs();
