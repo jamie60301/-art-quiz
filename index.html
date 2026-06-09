@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>《便利商店》美術組 核銷須知測驗</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Noto Sans TC', 'PingFang TC', sans-serif;
+    background: #f5f5f0;
+    color: #222;
+    min-height: 100vh;
+  }
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* ── LOGIN ── */
+  #login-screen {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; min-height: 100vh; padding: 24px;
+  }
+  .login-box {
+    background: #fff; border-radius: 16px; padding: 40px 36px;
+    max-width: 420px; width: 100%; box-shadow: 0 4px 24px rgba(0,0,0,.08);
+    text-align: center;
+  }
+  .login-box h1 { font-size: 1.4rem; font-weight: 700; margin-bottom: 6px; }
+  .login-box p { color: #666; font-size: .9rem; margin-bottom: 28px; }
+  .login-box input {
+    width: 100%; padding: 12px 16px; border: 1.5px solid #ddd;
+    border-radius: 8px; font-size: 1rem; margin-bottom: 12px; outline: none;
+  }
+  .login-box input:focus { border-color: #4a90e2; }
+  .login-box .name-row { display: flex; gap: 8px; }
+  .login-box .name-row input { flex: 1; }
+  .btn-primary {
+    width: 100%; padding: 13px; background: #2c2c2c; color: #fff;
+    border: none; border-radius: 8px; font-size: 1rem; cursor: pointer;
+    font-weight: 600; transition: background .2s;
+  }
+  .btn-primary:hover { background: #444; }
+  .error-msg { color: #e55; font-size: .85rem; margin-top: 8px; }
+
+  /* ── QUIZ ── */
+  #quiz-screen { max-width: 760px; margin: 0 auto; padding: 24px 16px 80px; }
+  .quiz-header {
+    background: #fff; border-radius: 12px; padding: 20px 24px;
+    margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,.06);
+  }
+  .quiz-header h2 { font-size: 1.2rem; font-weight: 700; }
+  .quiz-header p { font-size: .85rem; color: #888; margin-top: 4px; }
+  .progress-bar { height: 4px; background: #e8e8e8; border-radius: 2px; margin-top: 12px; }
+  .progress-fill { height: 100%; background: #2c2c2c; border-radius: 2px; transition: width .3s; }
+
+  .section-label {
+    font-size: .75rem; font-weight: 700; letter-spacing: .08em;
+    text-transform: uppercase; color: #888; margin: 28px 0 12px;
+  }
+  .question-card {
+    background: #fff; border-radius: 12px; padding: 20px 22px;
+    margin-bottom: 14px; box-shadow: 0 2px 8px rgba(0,0,0,.06);
+  }
+  .question-card .q-num {
+    font-size: .75rem; font-weight: 700; color: #aaa;
+    text-transform: uppercase; margin-bottom: 6px;
+  }
+  .question-card .q-text { font-size: .95rem; line-height: 1.55; margin-bottom: 16px; }
+  .question-card .tag {
+    display: inline-block; font-size: .7rem; font-weight: 700;
+    padding: 2px 8px; border-radius: 4px; margin-bottom: 8px;
+  }
+  .tag-single { background: #e8f0fe; color: #1a56db; }
+  .tag-multi  { background: #fef3c7; color: #92400e; }
+  .tag-bool   { background: #d1fae5; color: #065f46; }
+
+  .options { display: flex; flex-direction: column; gap: 8px; }
+  .option-label {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 14px; border: 1.5px solid #e5e5e5;
+    border-radius: 8px; cursor: pointer; transition: border-color .15s, background .15s;
+    font-size: .9rem; line-height: 1.45;
+  }
+  .option-label:hover { border-color: #bbb; background: #fafafa; }
+  .option-label input { margin-top: 2px; flex-shrink: 0; }
+  .option-label.selected { border-color: #2c2c2c; background: #f0f0f0; }
+
+  .submit-bar {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: #fff; border-top: 1px solid #eee;
+    padding: 14px 20px; display: flex; justify-content: center;
+  }
+  .btn-submit {
+    background: #2c2c2c; color: #fff; border: none; border-radius: 10px;
+    padding: 14px 48px; font-size: 1rem; font-weight: 700; cursor: pointer;
+    max-width: 400px; width: 100%; transition: background .2s;
+  }
+  .btn-submit:hover { background: #444; }
+  .btn-submit:disabled { background: #aaa; cursor: not-allowed; }
+
+  /* ── RESULT ── */
+  #result-screen {
+    max-width: 560px; margin: 0 auto; padding: 40px 16px;
+    text-align: center;
+  }
+  .result-box {
+    background: #fff; border-radius: 16px; padding: 40px 32px;
+    box-shadow: 0 4px 24px rgba(0,0,0,.08);
+  }
+  .score-circle {
+    width: 120px; height: 120px; border-radius: 50%;
+    background: #2c2c2c; color: #fff;
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; margin: 0 auto 24px;
+  }
+  .score-circle .score-num { font-size: 2.4rem; font-weight: 800; line-height: 1; }
+  .score-circle .score-den { font-size: .85rem; color: #aaa; }
+  .result-box h2 { font-size: 1.4rem; font-weight: 700; margin-bottom: 8px; }
+  .result-box p { color: #666; margin-bottom: 24px; }
+  .btn-retry {
+    background: #f0f0f0; color: #333; border: none; border-radius: 8px;
+    padding: 12px 32px; font-size: .95rem; font-weight: 600; cursor: pointer;
+  }
+
+  /* ── ADMIN ── */
+  #admin-screen { max-width: 960px; margin: 0 auto; padding: 28px 16px; }
+  #admin-screen h2 { font-size: 1.3rem; font-weight: 700; margin-bottom: 20px; }
+  .admin-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+  .admin-table th, .admin-table td { padding: 11px 14px; text-align: left; font-size: .88rem; }
+  .admin-table th { background: #f5f5f5; font-weight: 700; border-bottom: 1px solid #eee; }
+  .admin-table tr:not(:last-child) td { border-bottom: 1px solid #f0f0f0; }
+  .admin-table tr:hover td { background: #fafafa; }
+  .score-badge {
+    display: inline-block; padding: 2px 10px; border-radius: 20px;
+    font-weight: 700; font-size: .82rem;
+  }
+  .score-pass { background: #d1fae5; color: #065f46; }
+  .score-fail { background: #fee2e2; color: #991b1b; }
+  .btn-admin-back {
+    margin-top: 20px; background: #f0f0f0; color: #333; border: none;
+    border-radius: 8px; padding: 10px 24px; cursor: pointer; font-size: .9rem;
+  }
+  .admin-stats {
+    display: flex; gap: 14px; margin-bottom: 20px; flex-wrap: wrap;
+  }
+  .stat-card {
+    background: #fff; border-radius: 10px; padding: 14px 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.06); flex: 1; min-width: 120px;
+  }
+  .stat-card .stat-val { font-size: 1.6rem; font-weight: 800; }
+  .stat-card .stat-label { font-size: .78rem; color: #888; }
+  .loading { text-align: center; padding: 60px; color: #888; }
+  .btn-refresh {
+    background: #2c2c2c; color: #fff; border: none; border-radius: 8px;
+    padding: 9px 20px; cursor: pointer; font-size: .88rem; font-weight: 600; margin-bottom: 16px;
+  }
+  .detail-link { color: #2c2c2c; cursor: pointer; text-decoration: underline; font-size: .82rem; }
+
+  /* ── DETAIL ── */
+  #detail-screen { max-width: 760px; margin: 0 auto; padding: 28px 16px 60px; }
+  #detail-screen h2 { font-size: 1.2rem; font-weight: 700; margin-bottom: 20px; }
+  .detail-q { background: #fff; border-radius: 10px; padding: 16px 20px; margin-bottom: 12px; box-shadow: 0 1px 6px rgba(0,0,0,.05); }
+  .detail-q .dq-text { font-size: .9rem; margin-bottom: 10px; }
+  .detail-q .dq-opts { font-size: .85rem; display: flex; flex-wrap: wrap; gap: 6px; }
+  .dq-chip { padding: 3px 10px; border-radius: 5px; }
+  .chip-correct { background: #d1fae5; color: #065f46; }
+  .chip-wrong   { background: #fee2e2; color: #991b1b; }
+  .chip-neutral { background: #f0f0f0; color: #555; }
+  .dq-label { font-size: .78rem; font-weight: 700; color: #aaa; margin-bottom: 4px; }
+  .btn-back {
+    background: #f0f0f0; color: #333; border: none; border-radius: 8px;
+    padding: 10px 24px; cursor: pointer; font-size: .9rem; margin-bottom: 20px;
+  }
+
+  @media (max-width: 500px) {
+    .login-box { padding: 28px 20px; }
+    .admin-table { font-size: .8rem; }
+    .admin-table th, .admin-table td { padding: 9px 10px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen" class="screen active">
+  <div class="login-box">
+    <h1>《便利商店》美術組</h1>
+    <p>核銷須知 線上測驗</p>
+    <input type="text" id="login-name" placeholder="您的姓名" autocomplete="off">
+    <input type="password" id="login-password" placeholder="測驗密碼" autocomplete="off">
+    <button class="btn-primary" onclick="doLogin()">開始測驗</button>
+    <div class="error-msg" id="login-error"></div>
+  </div>
+</div>
+
+<!-- QUIZ -->
+<div id="quiz-screen" class="screen">
+  <div class="quiz-header">
+    <h2>《便利商店》美術組 核銷須知測驗</h2>
+    <p>請認真作答，共 27 題</p>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+  </div>
+  <div id="questions-container"></div>
+  <div class="submit-bar">
+    <button class="btn-submit" id="submit-btn" onclick="submitQuiz()">交卷</button>
+  </div>
+</div>
+
+<!-- RESULT -->
+<div id="result-screen" class="screen">
+  <div class="result-box">
+    <div class="score-circle">
+      <span class="score-num" id="result-score">--</span>
+      <span class="score-den" id="result-den">/ 27</span>
+    </div>
+    <h2 id="result-name">--</h2>
+    <p id="result-msg">感謝您完成測驗！</p>
+    <button class="btn-retry" onclick="showScreen('login-screen'); resetQuiz()">重新測驗</button>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div id="admin-screen" class="screen">
+  <h2>管理員後台 — 測驗結果</h2>
+  <div class="admin-stats" id="admin-stats"></div>
+  <button class="btn-refresh" onclick="loadAdmin()">重新整理</button>
+  <div id="admin-table-container"><div class="loading">載入中…</div></div>
+  <button class="btn-admin-back" onclick="showScreen('login-screen')">登出</button>
+</div>
+
+<!-- DETAIL -->
+<div id="detail-screen" class="screen">
+  <button class="btn-back" onclick="showScreen('admin-screen')">← 返回</button>
+  <h2 id="detail-title">作答詳情</h2>
+  <div id="detail-container"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, serverTimestamp, query, orderBy }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA2znsVNLZvoTHT1cx9gUFDyIMR6GXxS70",
+  authDomain: "quiz-5d24c.firebaseapp.com",
+  projectId: "quiz-5d24c",
+  storageBucket: "quiz-5d24c.firebasestorage.app",
+  messagingSenderId: "452443218872",
+  appId: "1:452443218872:web:d735e6062adefcad6ea54d",
+  measurementId: "G-7XLVGWMET9"
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+
+/* ── QUIZ DATA ── */
+const QUESTIONS = [
+  // 單選題
+  { id:1,  type:'single', text:'轅年視覺創意股份有限公司的統一編號是多少？',
+    opts:{A:'42865759', B:'54334222', C:'52859974', D:'90483301'} },
+  { id:2,  type:'single', text:'每週什麼時候需要交帳？',
+    opts:{A:'每週一下午兩點', B:'每週三下午兩點', C:'每週五下午五點', D:'每週三下午五點'} },
+  { id:3,  type:'single', text:'關於過夜停車費的報帳上限與規定，下列何者正確？',
+    opts:{A:'無上限，實報實銷', B:'上限為每日 $150', C:'上限為 $250，且需打統編並用鉛筆註明車牌、事由及地點', D:'上限為 $500，且不需註明車牌與場景'} },
+  { id:4,  type:'single', text:'關於高鐵車資的核銷與補貼標準，下列敘述何者正確？',
+    opts:{A:'全額核銷商務車廂車資', B:'全額核銷標準車廂車資，不需提供購票證明', C:'僅補貼「台鐵自強號費用」，手機購票需下載電子購票證明並打公司抬頭統編', D:'不予補貼高鐵車資，僅限搭乘台鐵'} },
+  { id:5,  type:'single', text:'「免用統一發票收據」單張核銷金額上限是多少？若超過該金額應如何處理？',
+    opts:{A:'上限 3,000 元，超過不予核銷', B:'上限 5,000 元，超過請店家分多張收據開立核銷', C:'上限 10,000 元，超過需強制開立三聯式發票', D:'無金額上限限制'} },
+  { id:6,  type:'single', text:'關於電子發票的列印與核銷要求，下列何者正確？',
+    opts:{A:'不需交易明細，直接裁切發票部分黏貼即可', B:'必須以 A4 列印，不需裁切或黏貼，且皆須附上該發票購物清單或交易明細', C:'可以用手機截圖畫面直接傳給會計報帳', D:'必須折成發票大小後，加蓋發票專用章'} },
+  { id:7,  type:'single', text:'關於電話費核銷的報支程序與限制，下列何者正確？',
+    opts:{A:'可以直接核銷月租費與通話費，無須申請', B:'需先向製片申請後採實報實銷（不含月租費），並以個人勞報核銷、附上電話帳單及通話明細', C:'只能核銷月租費，通話費一律自理', D:'不需附通話明細，帳單及通話明細缺一不可'} },
+  { id:8,  type:'single', text:'執行業務所得（9A 代號，如個人租借），單筆給付金額達多少以上且未提供工會證明時，會代扣 10% 所得稅及 2.11% 補充保費？',
+    opts:{A:'$20,000', B:'$20,010', C:'$29,500', D:'$90,501'} },
+
+  // 多選題
+  { id:9,  type:'multi', text:'向美術會計申請廠商款時，需提供哪些文件及資訊（可複選）',
+    opts:{A:'包含品項、數量、金額及廠商之報價單', B:'發票影本即可，不需要提供發票正本', C:'場景與場景編號', D:'存摺封面（收款對象需與發票開立廠商或簽約對象相同）', E:'相關日期（如拍攝／取貨／租借／歸還日期）'} },
+  { id:10, type:'multi', text:'關於每週回帳的分類與申報單位，下列哪些敘述是正確的？（複選）',
+    opts:{A:'生活費請以「個人」為單位交帳', B:'基本組耗材（如大力膠、噴膠、噴漆、束帶、垃圾袋）不需與生活費、製作費分開', C:'製作費請以「小組」為單位交帳，註明每位組員回帳金額', D:'回帳時必須將生活費、製作費及基本組耗材分開，並以日期將發票排序'} },
+  { id:11, type:'multi', text:'在製作費單據上，關於陳設組與現場組的鉛筆註記規範，下列哪些是正確的？（複選）',
+    opts:{A:'陳設組需在空白處以鉛筆註明：購買人／場景編號／品項名稱／數量', B:'若購買的物品數量僅為 1，為了省時，不需註明數量 X1', C:'現場組需在空白處以鉛筆註明：購買人／場次／演員／品項名稱／數量', D:'若為租賃物品，必須額外註明「租期」'} },
+  { id:12, type:'multi', text:'關於設計組與平面組在核銷時的特殊規範，下列哪些是正確的？（複選）',
+    opts:{A:'平面輸出或設計品發包，核銷時需附上印刷尺寸、個別數量', B:'為節省發票張數，不同場景的雜支與支出，應盡可能合併開在同一張發票中', C:'購買零件及耗材需於空白處以鉛筆註明用途', D:'報帳照片必須以實品拍攝為主，僅提供設計圖檔無法進行核銷'} },
+  { id:13, type:'multi', text:'美術組在雲端上傳報帳照片時，關於檔名中「金額」的標記規範，下列哪些敘述是正確的？（以下選項皆為報帳照片的檔名示例，請選出符合規定的）',
+    opts:{A:'1,940', B:'22,250', C:'5897', D:'照片檔名不需要標註金額，只需寫購買的品項及購買人名字即可'} },
+  { id:14, type:'multi', text:'當單據遺失、不合格或發生無單據支出時，以下哪些補單據的做法符合規定？（複選）',
+    opts:{A:'若沒有任何單據或截圖附件，只要口頭向會計登記說明，即可直接通融核銷', B:'外幣付款核銷時，需附上支付當日或扣款當日台灣銀行歷史匯率的「即期賣出」匯率證明', C:'應補上與該筆支出等值、且類別為「非餐飲、非交通」的合格發票或收據', D:'需提供原始交易畫面、對話紀錄、或寫明姓名與聯絡電話之領據（載明品項與金額）作為證明'} },
+  { id:15, type:'multi', text:'關於公有停車格的核銷流程，下列哪些是正確的？（複選）',
+    opts:{A:'公有停車格需連同「停車單」與「繳費收據」一同核銷，僅有繳費收據者不得核銷', B:'若一張超商繳費明細對應多張停車單，為了方便黏貼，應將明細剪開分別黏貼', C:'停車單遺失時，可上當地停管處網頁列印已繳證明，與繳費收據一同繳交', D:'以第三方支付或銀行扣款者，需至停管處網頁輸入抬頭統編列印繳費收據，與原始停車單一同繳交'} },
+  { id:16, type:'multi', text:'關於「免用統一發票收據」之合格條件與使用限制，下列哪些是正確的？（複選）',
+    opts:{A:'收據上需同時加蓋店家的「免用統一發票專用章」及「負責人小章」（大小章缺一不可）', B:'如果因其他科目預算不足，可以彈性拿多出來的餐飲收據去充抵核銷道具費', C:'若店家蓋成「統一發票專用章」，因印章不合規定，此收據將視為無效單據', D:'店家若未填寫買受人抬頭及統編，應留白交由美術會計統一於報帳前處理'} },
+  { id:17, type:'multi', text:'關於三聯式統一發票的核銷規範，下列哪些敘述是正確的？（複選）',
+    opts:{A:'若發票上的大寫金額填寫錯誤，不可直接塗改，必須請店家重新開立新發票', B:'買受人抬頭必須為「轅年視覺創意股份有限公司」，統一編號需為「42865759」', C:'若發票不小心開成二聯式發票，核銷時直接加蓋公司統編章即可視為合格發票', D:'三聯式發票報帳時，必須同時提供「扣抵聯」與「收執聯」兩聯正本，缺一不可'} },
+  { id:18, type:'multi', text:'下列哪些情況會導致工會證明被判定為「不合格」而無法免扣二代健保補充保費？（複選）',
+    opts:{A:'提供工會開立之載有被保險人姓名、且清楚標註所屬繳費月份的繳費收據', B:'工會繳費證明上漏掉「被保險人姓名」', C:'僅提供職業工會會員證（此證件通常只寫加保日，無法核對當下的在保狀況）', D:'工會繳費證明上沒有明確寫出該筆會費所屬的「繳費期間（年月）」'} },
+
+  // 是非題
+  { id:19, type:'bool', text:'若發票因為漏打統編，請店家於發票上補蓋「統一發票專用章」店章，該張發票即可視為合格發票進行核銷。' },
+  { id:20, type:'bool', text:'為了減少開立發票的數量，不同場景所使用的陳設道具，可以開在同一張發票內。' },
+  { id:21, type:'bool', text:'計程車資在核銷時，必須附上乘車收據，除了收據上的固定資訊外，還必須用鉛筆加註搭乘起訖點、搭乘對象與搭乘事由。' },
+  { id:22, type:'bool', text:'勞務報酬單簽名處，為了方便在戶外工作的同仁，可以由領款人以手機或平板「電子簽名」後列印繳交。' },
+  { id:23, type:'bool', text:'ETC 通行費在報帳時，除了提供通行費繳費紀錄之外，還必須印出「過站證明」，且兩者皆必須印有遠通電收電子憑證專用章。' },
+  { id:24, type:'bool', text:'開拍後的餐飲費補貼標準是早餐／宵夜 70 元、午餐／晚餐 90 元，申報時必須依照個人實際工作時間填寫餐費表。' },
+  { id:25, type:'bool', text:'每週核銷的金額若很少（例如不到 100 元），可以累積多週再交給會計，不需每週回帳。' },
+  { id:26, type:'bool', text:'勞務報酬單上的任何金額、個人資料，如果填寫錯誤有塗改，必須由所得人於塗改處簽名，否則該單據即為無效單據。' },
+  { id:27, type:'bool', text:'外幣付款核銷，核銷金額換算依據必須以「台灣銀行歷史匯率」中的「即期買入」匯率為換算標準。' },
+];
+
+const ANSWERS = {
+  1:['A'], 2:['B'], 3:['C'], 4:['C'], 5:['B'], 6:['B'], 7:['B'], 8:['A'],
+  9:['A','C','D','E'], 10:['A','C','D'], 11:['A','C','D'], 12:['A','C','D'],
+  13:['C'], 14:['B','C','D'], 15:['A','C','D'], 16:['A','C','D'],
+  17:['A','B','D'], 18:['B','C','D'],
+  19:['B'], 20:['B'], 21:['A'], 22:['B'], 23:['A'], 24:['A'],
+  25:['B'], 26:['B'], 27:['B'],
+};
+
+const TAKER_PW = '60049018';
+const ADMIN_PW = '5897';
+
+let currentUser = '';
+let userAnswers = {};
+let allResults  = [];
+
+/* ── HELPERS ── */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).style.display = '';
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function updateProgress() {
+  const answered = Object.keys(userAnswers).length;
+  document.getElementById('progress-fill').style.width = (answered / QUESTIONS.length * 100) + '%';
+}
+
+/* ── LOGIN ── */
+window.doLogin = function() {
+  const name = document.getElementById('login-name').value.trim();
+  const pw   = document.getElementById('login-password').value.trim();
+  const err  = document.getElementById('login-error');
+  if (!name) { err.textContent = '請輸入您的姓名'; return; }
+  if (pw === ADMIN_PW) {
+    currentUser = name;
+    err.textContent = '';
+    showScreen('admin-screen');
+    loadAdmin();
+  } else if (pw === TAKER_PW) {
+    currentUser = name;
+    err.textContent = '';
+    buildQuiz();
+    showScreen('quiz-screen');
+  } else {
+    err.textContent = '密碼錯誤，請重試';
+  }
+};
+
+document.getElementById('login-password').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+
+/* ── BUILD QUIZ ── */
+function buildQuiz() {
+  userAnswers = {};
+  const container = document.getElementById('questions-container');
+  container.innerHTML = '';
+  let lastType = '';
+  QUESTIONS.forEach(q => {
+    if (q.type !== lastType) {
+      const lbl = document.createElement('div');
+      lbl.className = 'section-label';
+      lbl.textContent = q.type === 'single' ? '單選題' : q.type === 'multi' ? '多選題' : '是非題';
+      container.appendChild(lbl);
+      lastType = q.type;
+    }
+    const card = document.createElement('div');
+    card.className = 'question-card';
+    const tagText = q.type === 'single' ? '單選' : q.type === 'multi' ? '複選' : '是非';
+    const tagClass = q.type === 'single' ? 'tag-single' : q.type === 'multi' ? 'tag-multi' : 'tag-bool';
+    let optsHTML = '';
+    if (q.type === 'bool') {
+      optsHTML = ['A:正確','B:錯誤'].map(o => {
+        const [k,v] = o.split(':');
+        return `<label class="option-label" id="lbl-${q.id}-${k}">
+          <input type="radio" name="q${q.id}" value="${k}" onchange="selectAnswer(${q.id},'${k}','single')"> ${k}. ${v}
+        </label>`;
+      }).join('');
+    } else if (q.type === 'single') {
+      optsHTML = Object.entries(q.opts).map(([k,v]) => `
+        <label class="option-label" id="lbl-${q.id}-${k}">
+          <input type="radio" name="q${q.id}" value="${k}" onchange="selectAnswer(${q.id},'${k}','single')"> ${k}. ${v}
+        </label>`).join('');
+    } else {
+      optsHTML = Object.entries(q.opts).map(([k,v]) => `
+        <label class="option-label" id="lbl-${q.id}-${k}">
+          <input type="checkbox" name="q${q.id}" value="${k}" onchange="selectAnswer(${q.id},'${k}','multi')"> ${k}. ${v}
+        </label>`).join('');
+    }
+    card.innerHTML = `
+      <div class="q-num">第 ${q.id} 題 <span class="tag ${tagClass}">${tagText}</span></div>
+      <div class="q-text">${q.text}</div>
+      <div class="options">${optsHTML}</div>`;
+    container.appendChild(card);
+  });
+}
+
+window.selectAnswer = function(qid, val, type) {
+  if (type === 'single') {
+    userAnswers[qid] = [val];
+    QUESTIONS.find(q=>q.id===qid).opts && Object.keys(QUESTIONS.find(q=>q.id===qid).opts || {A:1,B:1}).forEach(k => {
+      const lbl = document.getElementById(`lbl-${qid}-${k}`);
+      if (lbl) lbl.classList.toggle('selected', k === val);
+    });
+    if (!QUESTIONS.find(q=>q.id===qid).opts) {
+      ['A','B'].forEach(k => {
+        const lbl = document.getElementById(`lbl-${qid}-${k}`);
+        if (lbl) lbl.classList.toggle('selected', k === val);
+      });
+    }
+  } else {
+    if (!userAnswers[qid]) userAnswers[qid] = [];
+    const set = new Set(userAnswers[qid]);
+    const lbl = document.getElementById(`lbl-${qid}-${val}`);
+    const cb  = lbl && lbl.querySelector('input');
+    if (cb && cb.checked) { set.add(val); lbl.classList.add('selected'); }
+    else                  { set.delete(val); if(lbl) lbl.classList.remove('selected'); }
+    userAnswers[qid] = [...set];
+  }
+  updateProgress();
+};
+
+/* ── SUBMIT ── */
+window.submitQuiz = async function() {
+  const unanswered = QUESTIONS.filter(q => !userAnswers[q.id] || userAnswers[q.id].length === 0);
+  if (unanswered.length > 0) {
+    if (!confirm(`還有 ${unanswered.length} 題未作答（第 ${unanswered.map(q=>q.id).join('、')} 題），確定交卷？`)) return;
+  }
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.textContent = '送出中…';
+
+  let score = 0;
+  const detail = {};
+  QUESTIONS.forEach(q => {
+    const ans = ANSWERS[q.id].slice().sort().join(',');
+    const usr = (userAnswers[q.id] || []).slice().sort().join(',');
+    const correct = ans === usr;
+    if (correct) score++;
+    detail[q.id] = { user: userAnswers[q.id] || [], correct };
+  });
+
+  try {
+    await addDoc(collection(db, 'quizResults'), {
+      name: currentUser,
+      score,
+      total: QUESTIONS.length,
+      answers: userAnswers,
+      submittedAt: serverTimestamp(),
+    });
+  } catch(e) {
+    console.error(e);
+  }
+
+  document.getElementById('result-score').textContent = score;
+  document.getElementById('result-name').textContent = currentUser + ' 的成績';
+  const pct = Math.round(score / QUESTIONS.length * 100);
+  document.getElementById('result-msg').textContent = pct >= 80
+    ? `🎉 恭喜通過！正確率 ${pct}%` : `正確率 ${pct}%，建議再複習一次核銷須知 📖`;
+  showScreen('result-screen');
+};
+
+window.resetQuiz = function() {
+  userAnswers = {};
+  document.getElementById('login-name').value = '';
+  document.getElementById('login-password').value = '';
+  document.getElementById('login-error').textContent = '';
+};
+
+/* ── ADMIN ── */
+window.loadAdmin = async function() {
+  document.getElementById('admin-table-container').innerHTML = '<div class="loading">載入中…</div>';
+  try {
+    const q   = query(collection(db, 'quizResults'), orderBy('submittedAt', 'desc'));
+    const snap = await getDocs(q);
+    allResults = [];
+    snap.forEach(doc => allResults.push({ id: doc.id, ...doc.data() }));
+    renderAdmin();
+  } catch(e) {
+    document.getElementById('admin-table-container').innerHTML = `<div class="loading">載入失敗：${e.message}</div>`;
+  }
+};
+
+function renderAdmin() {
+  const total = allResults.length;
+  const avg   = total ? (allResults.reduce((s,r)=>s+r.score,0)/total).toFixed(1) : '--';
+  const pass  = allResults.filter(r=>r.score/r.total>=0.8).length;
+
+  document.getElementById('admin-stats').innerHTML = `
+    <div class="stat-card"><div class="stat-val">${total}</div><div class="stat-label">總作答人次</div></div>
+    <div class="stat-card"><div class="stat-val">${avg}</div><div class="stat-label">平均分數</div></div>
+    <div class="stat-card"><div class="stat-val">${pass}</div><div class="stat-label">通過人數（≥80%）</div></div>`;
+
+  if (!allResults.length) {
+    document.getElementById('admin-table-container').innerHTML = '<div class="loading">尚無作答紀錄</div>';
+    return;
+  }
+  const rows = allResults.map((r,i) => {
+    const pct  = Math.round(r.score / r.total * 100);
+    const cls  = pct >= 80 ? 'score-pass' : 'score-fail';
+    const time = r.submittedAt ? new Date(r.submittedAt.seconds*1000).toLocaleString('zh-TW') : '--';
+    return `<tr>
+      <td>${i+1}</td>
+      <td><strong>${r.name || '--'}</strong></td>
+      <td><span class="score-badge ${cls}">${r.score} / ${r.total}（${pct}%）</span></td>
+      <td>${time}</td>
+      <td><span class="detail-link" onclick="showDetail(${i})">查看詳情</span></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('admin-table-container').innerHTML = `
+    <table class="admin-table">
+      <thead><tr><th>#</th><th>姓名</th><th>成績</th><th>作答時間</th><th>詳情</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+window.showDetail = function(idx) {
+  const r = allResults[idx];
+  document.getElementById('detail-title').textContent = `${r.name} 的作答詳情（${r.score}/${r.total}）`;
+  let html = '';
+  QUESTIONS.forEach(q => {
+    const ans  = ANSWERS[q.id];
+    const usr  = (r.answers && r.answers[q.id]) ? r.answers[q.id] : [];
+    const ok   = ans.slice().sort().join(',') === usr.slice().sort().join(',');
+    const opts = q.type === 'bool' ? {A:'正確',B:'錯誤'} : (q.opts || {});
+    const chips = Object.entries(opts).map(([k,v]) => {
+      const inAns = ans.includes(k);
+      const inUsr = usr.includes(k);
+      let cls = 'chip-neutral';
+      if (inAns && inUsr) cls = 'chip-correct';
+      else if (!inAns && inUsr) cls = 'chip-wrong';
+      else if (inAns && !inUsr) cls = 'chip-neutral';
+      return `<span class="dq-chip ${cls}">${k}. ${v}</span>`;
+    }).join('');
+    html += `<div class="detail-q">
+      <div class="dq-label">${ok ? '✅' : '❌'} 第 ${q.id} 題</div>
+      <div class="dq-text">${q.text}</div>
+      <div class="dq-label">正確答案：${ans.join('、')}　　作答：${usr.length ? usr.join('、') : '（未作答）'}</div>
+      <div class="dq-opts">${chips}</div>
+    </div>`;
+  });
+  document.getElementById('detail-container').innerHTML = html;
+  showScreen('detail-screen');
+};
+</script>
+</body>
+</html>
