@@ -952,7 +952,7 @@ function buildReport() {
   document.getElementById('rpt-body').innerHTML = `
     <!-- Summary -->
     <div class="summary-grid">
-      ${[['👥',unique.length,'參與人數'],['📝',subs.length,'作答次數'],['⭐',avgPct,'平均正確率'],['🏆',passed,'及格人次']]
+      ${[['👥',unique.length,'參與人數'],['📝',subs.length,'作答次數'],['⭐',avgPct,'平均成績'],['🏆',passed,'及格人次']]
         .map(([ic,v,l])=>`<div class="summary-card"><div class="sc-icon">${ic}</div><div class="sc-val">${v}</div><div class="sc-label">${l}</div></div>`).join('')}
     </div>
 
