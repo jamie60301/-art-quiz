@@ -797,8 +797,10 @@ function grade(q, ua) {
 /* ══ RESULT ══ */
 function buildResult() {
   const d = S.submitted;
+  const typeMap = {single:'單選',multi:'多選',tf:'是非'};
 
   if (d) {
+    // 受測者模式
     const pct = Math.round(d.score/27*100);
     const pass = pct >= PASS_PCT*100;
     document.getElementById('r-hero').innerHTML =
@@ -807,20 +809,12 @@ function buildResult() {
        <div class="hero-total">/ 27 題</div>
        <div class="hero-pct">${pct}%</div>
        <div class="hero-badge ${pass?'badge-pass':'badge-fail'}">${pass?'🎉 及格（80% 以上）':'❌ 未及格（需達 80% 以上）'}</div>`;
-  } else {
-    document.getElementById('r-hero').innerHTML =
-      `<div class="hero-name" style="font-size:1rem;color:var(--muted);padding:20px 0;">管理員檢視模式</div>`;
-  }
-
-  // Reviews (only when user has a personal submission)
-  if (d) {
     document.getElementById('r-reviews').innerHTML =
       QS.map((q,i) => {
         const ua = d.answers[i]||[];
         const ok = grade(q,ua);
         const userStr    = ua.length ? ua.map(x=>q.opts[x]).join('、') : '（未作答）';
         const correctStr = q.ans.map(x=>q.opts[x]).join('、');
-        const typeMap    = {single:'單選',multi:'多選',tf:'是非'};
         return `<div class="review ${ok?'ok':'bad'}">
           <div class="rv-head">
             <div class="rv-icon">${ok?'✅':'❌'}</div>
@@ -837,7 +831,34 @@ function buildResult() {
         </div>`;
       }).join('');
   } else {
-    document.getElementById('r-reviews').innerHTML = '';
+    // 管理員瀏覽模式：顯示完整題庫與正確答案
+    document.getElementById('r-hero').innerHTML =
+      `<div style="padding:20px 0 8px;font-size:1.05rem;font-weight:700;color:var(--text);">📋 題庫瀏覽模式</div>
+       <div style="font-size:.85rem;color:var(--muted);">以下顯示所有題目、選項及正確解答</div>`;
+    document.getElementById('r-reviews').innerHTML =
+      QS.map(q => {
+        const correctStr = q.ans.map(x=>q.opts[x]).join('、');
+        const labels = ['A','B','C','D','E'];
+        const optsHtml = q.opts.map((o,oi) => {
+          const correct = q.ans.includes(oi);
+          return `<div style="padding:6px 10px;margin:4px 0;border-radius:8px;font-size:.88rem;
+            background:${correct?'rgba(34,197,94,.12)':'transparent'};
+            border:1.5px solid ${correct?'#22c55e':'var(--border)'};
+            color:${correct?'#16a34a':'var(--text)'};font-weight:${correct?'600':'400'};">
+            ${labels[oi]}. ${o}${correct?' ✓':''}
+          </div>`;
+        }).join('');
+        return `<div class="review ok" style="border-left:4px solid var(--accent);">
+          <div class="rv-head">
+            <div>
+              <div class="rv-meta">第 ${q.id} 題 ● ${typeMap[q.type]}</div>
+              <div class="rv-q">${q.q}</div>
+              <div style="margin-top:10px;">${optsHtml}</div>
+            </div>
+          </div>
+          <div class="rv-explain" style="margin-top:10px;">${q.exp}<br><span class="rv-page" style="display:block;text-align:right;">出處：核銷須知 簡報版 ${q.page}</span></div>
+        </div>`;
+      }).join('');
   }
 }
 
