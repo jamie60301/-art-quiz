@@ -934,7 +934,7 @@ function buildReport() {
   }
 
   const unique = [...new Set(subs.map(s=>s.name))];
-  const avg    = (subs.reduce((a,b)=>a+b.score,0)/subs.length).toFixed(1);
+  const avgPct = Math.round(subs.reduce((a,b)=>a+b.score,0)/subs.length/27*100);
   const passed = subs.filter(s=>s.score/27>=PASS_PCT).length;
 
   const best = {};
@@ -952,7 +952,7 @@ function buildReport() {
   document.getElementById('rpt-body').innerHTML = `
     <!-- Summary -->
     <div class="summary-grid">
-      ${[['👥',unique.length,'參與人數'],['📝',subs.length,'作答次數'],['⭐',avg,'平均分數'],['🏆',passed,'及格人次']]
+      ${[['👥',unique.length,'參與人數'],['📝',subs.length,'作答次數'],['⭐',avgPct,'平均正確率'],['🏆',passed,'及格人次']]
         .map(([ic,v,l])=>`<div class="summary-card"><div class="sc-icon">${ic}</div><div class="sc-val">${v}</div><div class="sc-label">${l}</div></div>`).join('')}
     </div>
 
@@ -961,14 +961,14 @@ function buildReport() {
       <div class="rpt-title">🏆 排行榜（各人最高分）</div>
       <div class="card" style="padding:0;overflow:hidden;">
         <table class="rank-table">
-          <thead><tr><th>名次</th><th>姓名</th><th>最高分</th><th>正確率</th><th>時間</th></tr></thead>
+          <thead><tr><th>名次</th><th>姓名</th><th>最高分</th><th>分數</th><th>時間</th></tr></thead>
           <tbody>${rankList.map((p,i)=>{
             const t = p.submittedAt ? new Date(p.submittedAt.seconds*1000).toLocaleString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '--';
             return `<tr>
               <td>${['🥇','🥈','🥉'][i]||i+1}</td>
               <td><strong>${p.name}</strong></td>
               <td><strong>${p.score}/27</strong></td>
-              <td>${Math.round(p.score/27*100)}%</td>
+              <td>${Math.round(p.score/27*100)}</td>
               <td style="color:var(--muted);font-size:.78rem">${t}</td>
             </tr>`;
           }).join('')}</tbody>
